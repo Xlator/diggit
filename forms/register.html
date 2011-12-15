@@ -1,0 +1,27 @@
+<section class="regform">
+<form method=post action=login.php>
+	<input type=hidden name=action value=register>
+	<label for=username>Username</label><br />
+	<input type=text name=username value={USERNAME}>
+	<em class=username-err>{USERNAME-ERR}</em><br />
+	<ul class=usernamerules>
+		<li>The username can be between 3-16 characters</li>
+		<li>The username can contain letters, numbers, dashes and underscores</li>
+	</ul>
+	<label for=email>E-mail (optional)</label><br />
+	<input type=text name=email value={EMAIL}>
+	<em class=email-err>{EMAIL-ERR}</em><br />
+	<label for=password>Password</label><br />
+	<input type=password name=password>
+	<em class=password-err>{PASSWORD-ERR}</em><br />
+	<label for=password>Confirm password</label><br />
+	<input type=password name=confirm_password><br />
+	
+	<ul class=passwordrules>
+		<li>The password must be at least 8 characters</li>
+		<li>The password must contain at least one upper case letter, one lower case letter and one number</li>
+		<li>The password can consist of letters, numbers and the following special characters: !@#$%*\^()_</li>
+	</ul>	
+	<input type=submit value=Register>
+</form>
+</section>

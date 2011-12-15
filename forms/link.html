@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf8>
+<script type=text/javascript href=js/diggit.js></script>
+<title>diggit - Submit link</title>
+<style> input { font-size: 1.5em; } label { font-size: 1.5em; } input[type=checkbox] { width:1em; height: 1em; } </style>
+</head>
+
+<body>
+<section class="linkform">
+
+<form method=post action=submit.php>
+	<label for=title>Title</label><br />
+	<input type=text name=title value={TITLE}>
+	<em class=title-err>{TITLE-ERR}</em><br />
+	<label for=url>URL</label><br />
+	<input type=text name=url value={URL}>
+	<em class=url-err>{URL-ERR}</em><br />
+	<label for=cat>Category</label><br /></em>
+	<input type=text id=catbox name=cat value={CAT}><br />
+	<div class=submit-cats>Available categories: {CATS}</div>
+	<input type=checkbox name=nsfw checked>
+	<label for=nsfw>NSFW?</label>
+	<input type=submit>
+</form>
+
+</section>

@@ -1,0 +1,125 @@
+header.top { 
+	display: inline-block;
+	width:100%;
+	font-size:0.6em;
+	height:1em;
+	font-weight: bold;
+	padding-left:15px;
+	padding-top: 0px;
+	padding-bottom: 4px;
+	/*border-bottom:1px solid #999;*/
+	margin-top: 0px;
+	margin-bottom: 5px;
+	font-family: sans;
+}
+
+header.top a { margin-left: 5px; text-decoration: none; font-weight:bold; color: #A00; }
+header.top a:hover { text-shadow; 2px 2px 2px #000; }
+
+a.login { float: right; margin-right:1.8em; }
+
+h1 {
+	margin-left:2%;
+	margin-top:2%;
+	font-size:3em;
+	color:#900;
+	font-family: Electrolize,sans;
+	line-height: 0;
+}
+
+ul {
+	list-style-type:none;
+}
+
+li { 
+	font-size:0.65em;
+	display: block; 
+	margin-bottom:0.5em; 
+	width:60.5em;
+	padding-top:0.2em;
+}
+
+div.linklist {
+	margin-right: 45%; 
+}
+
+article.link { 
+	margin-bottom:0em;
+	margin-top:0em;	
+	margin-left:0.3em;
+       	font-family:sans;	
+	display: inline-block;
+	width:57em;
+}
+
+li:hover { background: #DFF; }
+
+article.link h3 { 
+	font-size: 1.8em;
+	display: inline;
+	margin-right: 0.5em;
+	margin-bottom: 1em;
+}
+
+article.link a { 
+	color: #08F; 
+	text-decoration:none;
+	font-weight: 300; }
+
+article.link header span { color:#666; }
+
+article.link strong.nsfw { color:#F00; }
+
+article.link footer { 
+	margin-top: 0.5em; 
+	color: #444;
+	padding:3px;
+	border-bottom: 1px dotted #999; }
+
+article.link footer span {
+	
+}
+
+span.points { margin-right:0em; }
+
+span.buttons { float: right; }
+span.buttons a { color: #444; float:right; margin-left:1em;}
+
+article.link footer a { font-weight: bold; }
+
+div.vote { 
+	float: left;
+	display: block;
+	width: 14px;
+	height: 36px;
+	margin-left:1.2em;
+	margin-right:0.3em;
+	padding-top: 3px;
+	padding-bottom: 3px;
+}
+
+div.arrowup {
+	display:block;
+	width:14px;
+	height:15px;
+	margin-bottom:3px;
+	background-image:url(../images/sprites.png); 
+	background-position: -96px -536px; }
+
+div.arrowdown {
+	display:block;
+	width:14px;
+	height:15px;
+	margin-bottom:6px;
+	background-image:url(../images/sprites.png); 
+	background-position: -48px -536px; 
+}
+
+div.upvote {
+	background-image:url(../images/sprites.png); 
+	background-position: -64px -536px; }
+
+div.downvote {
+	background-image:url(../images/sprites.png); 
+	background-position: -80px -536px; 
+}

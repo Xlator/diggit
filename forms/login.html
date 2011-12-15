@@ -1,0 +1,12 @@
+<section class="loginform">
+<form method=post action=login.php>
+	<input type=hidden name=action value=login>
+	<label for=username>Username</label><br />
+	<input type=text name=username value={USERNAME}>
+	<em class=username-err>{USERNAME-ERR}</em><br />
+	<label for=password>Password</label><br />
+	<input type=password name=password><br />
+	<em class=password-err>{PASSWORD-ERR}<br />
+	<input type=submit value=Login>
+</form>
+</section>
