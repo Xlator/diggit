@@ -31,21 +31,25 @@ function validatePassword($password,$storedhash) {
 
 // Validate registration data, return array of errors (if any), else return empty array
 function registrationErrors($input) {
-	//if(strlen(trim($input[username])) < 3) { $error[username] = "Username must be at least 3 characters"; }
+	
 	$re = "/^[A-Za-z0-9\-_]{3,16}$/";
 	if(!preg_match($re,trim($input[username]))) { $error[username] = "Invalid username"; }
 	elseif(userExists("username",trim($input[username]))) { $error[username] = "That username is already registered"; }
+		
 	$valid = "!@#$%*\^()_\w\d"; // Valid characters for passwords
 	$re = "/^[$valid]*(?=.{8,})(?=.*\d)(?=.*[A-Z])(?=.*[a-z])[$valid]*$/";
 	if(!preg_match($re,$input[password])) { $error[password] = "Invalid password"; }
 	elseif($input[password] != $input[confirm_password]) { $error[password] = "Password and confirmation do not match"; }
+		
 	if(trim($input[email]) != "" && !filter_var(trim($input[email]),FILTER_VALIDATE_EMAIL)) { 
 		$error[email] = "Invalid email address";
 	}
+	
 	elseif(userExists("email",trim($input[email]))) { $error[email] = "That email address is already registered"; }
 
 	if(isset($error)) { return($error); }
 	else { return(false); }
+
 }
 
 function loginErrors($input) {

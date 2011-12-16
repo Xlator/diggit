@@ -1,10 +1,10 @@
 <?php
 
-function dbConn() {
+function dbConn() { // Returns database link
 	return mysqli_connect(DBHOST,DBUSER,DBPASS,DBNAME);
 }
 
-function dbQuery($query) {
+function dbQuery($query) { // Returns result of query, logs error and returns false on failure
 	$db = dbConn();
 	$result = mysqli_query($db,$query);
 	if($result !== false) {
@@ -14,7 +14,7 @@ function dbQuery($query) {
 	return(false);
 }
 
-function dbQueryId($query) {
+function dbQueryId($query) { // Returns insert id of query
 	$db = dbConn();
 	$result = mysqli_query($db,$query);
 	if($result != false) {
@@ -25,22 +25,22 @@ function dbQueryId($query) {
 }
 
 
-function dbFirstResult($query) {
+function dbFirstResult($query) { // Returns first row of query result as indexed array
 	$result = dbQuery($query);
 	if($result === false) { return(false); }
 	$row = mysqli_fetch_array($result);
 	return $row[0];
 }
 
-function dbFirstResultAssoc($query) {
+function dbFirstResultAssoc($query) { // Returns first row of query result as associative array
 	$result = dbQuery($query);
 	if($result === false) { return(false); }
-	$row = mysqli_fetch_array($result);
-	return $row[0];
+	$row = mysqli_fetch_assoc($result);
+	return $row;
 }
 
 
-function dbResultArray($query) {
+function dbResultArray($query) { // Returns query result as associative array
 	$result = dbQuery($query);
 	if($result === false) { return(false); }
 	while($row = mysqli_fetch_assoc($result)) {
@@ -49,14 +49,19 @@ function dbResultArray($query) {
 	return($output);
 }
 
-function dbResultExists($query) {
+function dbResultExists($query) { // Returns true if a result is found, false if it isn't
 	$result = dbQuery($query);
 	$row = mysqli_fetch_array($result);
 	if(!empty($row)) { return(true); }
 	return(false);
 }
 
-function dbEscape($string) {
+function dbEscape($string) { // Returns escaped string to prevent SQL insertion attacks
 	$db = dbConn();
 	return(mysqli_real_escape_string($db,$string));
 }
+
+function dbEscapeArray($array) { // Returns escaped variable to prevent SQL insertion
+	return(array_map("dbEscape",$array));
+}
+

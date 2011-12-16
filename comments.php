@@ -9,7 +9,7 @@ require("functions/common.php");
 require("functions/comments.php");
 
 printHeader();
-print "<ul>";
+print "<pre>";
 $comments = getComments($_GET[linkid]);
 commentTree($comments);
 
