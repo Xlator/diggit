@@ -1,6 +1,8 @@
 <?php
 
-function timeSince($mysqltimestamp) {
+/* --------- Common functions (used throughout the site) --------- */
+
+function timeSince($mysqltimestamp) { // returns time since given timestamp, rounded to the largest whole unit (e.g 3 hours 12 minutes ~ 3 hours)
 	$time = strtotime($mysqltimestamp);
 	$diff = time() - $time;
 	$units = array("seconds","minutes", "hours", "days", "weeks", "months", "years");
@@ -16,7 +18,7 @@ function timeSince($mysqltimestamp) {
 	return("$diff $unit ago");
 }
 
-function printHeader() {
+function printHeader() { // Outputs the site header
 	$header = file_get_contents("templates/header.html");
 	$points = getMyPoints($_SESSION[id]);
 	if($_SESSION[id]==0) { $login = "<a href=login.php class=login>login/register</a>"; 
@@ -32,7 +34,7 @@ function printHeader() {
 	print($header);
 }
 
-function voteArrows($myvote,$subjectid) {
+function voteArrows($myvote,$subjectid) { // Outputs the appropriate voting arrows depending on the logged in user's vote
 	$arrows = "<div class=vote>\n";
 	if($_SESSION[id] != 0) { 
 		if($myvote == 0) {	

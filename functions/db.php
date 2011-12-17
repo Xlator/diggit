@@ -1,13 +1,74 @@
 <?php
 
-// Include helper functions
-require("functions/dbhelper.php");
+/* --------- Database connection/query helper functions --------- */
 
-function recaptchaKey($key) { // get the reCAPTCHA key from the database. $key can be 'public' or 'private'
-	$result = dbFirstResult("SELECT value FROM config WHERE name='recaptcha_$key'");
-	if(empty($result)) { return("reCAPTCHA $key key not available"); }
-	return($result);
+function dbConn() { // Returns database link
+	return mysqli_connect(DBHOST,DBUSER,DBPASS,DBNAME);
 }
+
+function dbQuery($query) { // Returns result of query, logs error and returns false on failure
+	$db = dbConn();
+	$result = mysqli_query($db,$query);
+	if($result !== false) {
+		return($result);
+	}
+	error_log("MySQL Query Error: " . mysqli_error($db)); 
+	return(false);
+}
+
+function dbQueryId($query) { // Returns insert id of query
+	$db = dbConn();
+	$result = mysqli_query($db,$query);
+	if($result != false) {
+		return(mysqli_insert_id($db));
+	}
+	error_log("MySQL Query Error: " . mysqli_error($db));
+	return(false);
+}
+
+
+function dbFirstResult($query) { // Returns first row of query result as indexed array
+	$result = dbQuery($query);
+	if($result === false) { return(false); }
+	$row = mysqli_fetch_array($result);
+	return $row[0];
+}
+
+function dbFirstResultAssoc($query) { // Returns first row of query result as associative array
+	$result = dbQuery($query);
+	if($result === false) { return(false); }
+	$row = mysqli_fetch_assoc($result);
+	return $row;
+}
+
+
+function dbResultArray($query) { // Returns query result as associative array
+	$result = dbQuery($query);
+	if($result === false) { return(false); }
+	while($row = mysqli_fetch_assoc($result)) {
+		$output[] = $row;
+	}
+	return($output);
+}
+
+function dbResultExists($query) { // Returns true if a result is found, false if it isn't
+	$result = dbQuery($query);
+	$row = mysqli_fetch_array($result);
+	if(!empty($row)) { return(true); }
+	return(false);
+}
+
+function dbEscape($string) { // Returns escaped string to prevent SQL insertion attacks
+	$db = dbConn();
+	return(mysqli_real_escape_string($db,$string));
+}
+
+function dbEscapeArray($array) { // Returns escaped variable to prevent SQL insertion
+	return(array_map("dbEscape",$array));
+}
+
+
+/* --------- User table functions --------- */
 
 function getUsername($id) { // Returns name of user with given id
 	$id = intval($id);
@@ -37,14 +98,16 @@ function registerUser($input) { // Writes user info to database on successful re
 	return($insert);
 }
 
+/* --------- Link table functions --------- */
+
 function getLink($id) { // Fetch a single link by id
 	$query = "
 	SELECT links.*,IFNULL(r.votes,0) AS votes,IFNULL(t.points,0) AS points,c.comments FROM links
 	LEFT JOIN recentvotes AS r ON links.id=r.subjectid AND r.type='link'
 	LEFT JOIN totalvotes AS t ON links.id=t.subjectid AND t.type='link'
 	LEFT JOIN commentcounts AS c ON links.id=c.linkid
-	WHERE links.id=$id LINIT 1";
-	return(dbFirstResult($query));
+	WHERE links.id=$id LIMIT 1";
+	return(dbFirstResultAssoc($query));
 }
 
 function getLinks($page=1,$limit=25,$category=NULL) { // Fetch and return array of links
@@ -80,19 +143,8 @@ function linkIdExists($id) { // return true if the link with the given id exists
 	return(dbResultExists("SELECT id FROM links WHERE id=$id"));
 }
 
-function categoryExists($cat) { // Return true if the given category exists
-	$cat = dbEscape($cat);
-	return(dbResultExists("SELECT * FROM categories WHERE name='$cat'"));
-}
 
-function getCategories($ownerid=false) { // Get an array of categories, optionally only those owned by a specific user
-	$ownerid = intval($ownerid);
-	return(dbResultArray("SELECT * FROM categories" . ($ownerid? ' WHERE owner=' . $ownerid : '')));
-}
-
-function sendLink($input) { 
-	// takes an array of sanitized input to insert into the database
-	// on success, returns the id of the submitted link
+function sendLink($input) { // takes an array of sanitized input to insert into the database. on success, returns the id of the submitted link
 	$input = dbEscapeArray($input);
 	
 	if(!isset($input[cat])) { $input[cat] = "main"; }
@@ -120,6 +172,20 @@ function sendLink($input) {
 	return($id);
 }
 
+/* --------- Category table functions --------- */
+
+function categoryExists($cat) { // Return true if the given category exists
+	$cat = dbEscape($cat);
+	return(dbResultExists("SELECT * FROM categories WHERE name='$cat'"));
+}
+
+function getCategories($ownerid=false) { // Get an array of categories, optionally only those owned by a specific user
+	$ownerid = intval($ownerid);
+	return(dbResultArray("SELECT * FROM categories" . ($ownerid? ' WHERE owner=' . $ownerid : '')));
+}
+
+/* --------- Comment table functions --------- */
+
 function sendComment($input) {
 	// takes an array of sanitized input
 	$input = dbEscapeArray($input);
@@ -127,23 +193,26 @@ function sendComment($input) {
 
 function getComments($linkid) { // Returns an array of comments to the given link ID
 	$linkid = intval($linkid);
-	return(dbResultArray("SELECT c.*,u.username FROM comments AS c JOIN users AS u ON u.id=c.userid WHERE c.linkid=$linkid"));
+	return(dbResultArray("SELECT c.*,u.username,IFNULL(t.points,0) AS points FROM comments AS c JOIN users AS u ON u.id=c.userid LEFT JOIN totalvotes AS t ON c.id=t.subjectid AND t.type='comment' WHERE c.linkid=$linkid"));
 }
 
+/* --------- Vote table functions --------- */
 
-function getMyVote($userid,$subjectid,$type) { // Return given users vote for given link/comment (or 0 if they haven't voted)
+function getMyVote($userid,$subjectid,$type) { // Return given user's vote for given link/comment (or 0 if they haven't voted)
 	$result = dbFirstResult("SELECT vote FROM votes WHERE subjectid=$subjectid AND userid=$userid AND type='$type'");
 	if($result==NULL) { return(0); }
 	return($result);
 }
 
 function getMyPoints($userid) { // Get given user's total points (from their submissions and comments)
-	$query = "SELECT SUM(IFNULL(t.points,0)) as points FROM users 
-		  LEFT JOIN links ON links.user=users.id 
-		  LEFT JOIN comments ON comments.userid=users.id 
-		  LEFT JOIN totalvotes AS t ON (links.id=t.subjectid AND t.type='link') 
-		  			    OR (comments.id=t.subjectid AND t.type='comment') 
-					    WHERE users.id=$userid GROUP BY user ORDER BY points DESC";
+	$query="SELECT (IFNULL(l.links,0)+IFNULL(c.comments,0)) AS points 
+		FROM (SELECT users.id AS id, sum(v.vote) as links FROM users 
+	        LEFT JOIN links ON links.user=users.id 
+	        LEFT JOIN votes as v ON v.subjectid=links.id AND v.type='link' GROUP BY id) as l 
+	        JOIN (SELECT users.id AS id, sum(v.vote) as comments FROM users 
+	        LEFT JOIN comments ON comments.userid=users.id 
+	        LEFT JOIN votes as v ON v.subjectid=comments.id AND v.type='comment' GROUP BY id) as c 
+	        ON l.id=c.id WHERE c.id=$userid GROUP BY c.id"; 
 	return(dbFirstResult($query));
 }
 

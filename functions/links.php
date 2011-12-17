@@ -1,8 +1,8 @@
 <?php
 
-/* Link input validation/cleaning */
+/* --------- Link input validation/cleaning functions --------- */
 
-function linkErrors($input) { // Takes an array of link data, returns array of errors (if any) or false on no errors.
+function linkErrors($input) { // Takes an array of link input, returns array of errors (if any) or false on no errors.
 	if(trim($input[title]) == "") { $error[title] = "You must enter a link title"; }
 	if(!filter_var(trim($input[url]),FILTER_VALIDATE_URL)) { $error[url] = "You must enter a valid URL"; }
 	
@@ -37,9 +37,9 @@ function cleanLink($input) { // Takes an array of link data, returns same but sa
 	return($input);
 }
 
-/* Link output */
+/* --------- Link output ---------*/
 
-function printLink($link) {
+function printLink($link) { // Prints a link
 	$template = file_get_contents("templates/link.html");
 	$nsfw = "";
 	$time = timeSince($link[time]);
@@ -52,13 +52,13 @@ function printLink($link) {
 	$arrows = voteArrows($vote,$link[id]);
 	switch($link[comments]) {
 		case 0:
-			$comments = "<a href=comments.php?id=link[id]>comment</a>";
+			$comments = "<a href=comments.php?linkid=$link[id]>comment</a>";
 		break;
 		case 1:
-			$comments = "<a href=comments.php?id=link[id]>1 comment</a>";
+			$comments = "<a href=comments.php?linkid=$link[id]>1 comment</a>";
 		break;
 		default:
-			$comments = "<a href=comments.php?id=link[id]>$link[comments] comments</a>";
+			$comments = "<a href=comments.php?linkid=$link[id]>$link[comments] comments</a>";
 			break;
 	}
 	

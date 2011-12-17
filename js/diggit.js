@@ -30,7 +30,7 @@ $(document).ready (function () {
 			}
 			 			
 			$.post("vote.php", { 'vote[]' : [$(this)[0].id, window.vote, type] }, 
-					function(data) { $("body").find("span.points#"+pointsid).html( data ); },"html");
+					function(data) { $("body").find("span.points#"+type+pointsid).html( data ); },"html");
 	
 		});
 	

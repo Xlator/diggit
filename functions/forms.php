@@ -1,6 +1,8 @@
 <?php
 
-function linkform($errors=array(),$input=array()) {
+/* --------- Form output functions --------- */
+
+function linkform($errors=array(),$input=array()) { // Outputs the link submission form with error messages and input from previous attempt (if any)
 	$form = file_get_contents("forms/link.html");
 	
 	if(!empty($errors)) { // Replace placeholders with error messages and post back input
@@ -35,7 +37,7 @@ function linkform($errors=array(),$input=array()) {
 	//return($form);
 }
 
-function loginform($errors=array(),$input=array()) {
+function loginform($errors=array(),$input=array()) { // Outputs the login form with error messages and input from previous attempt (if any)
 	$form = file_get_contents("forms/login.html");
 	if($input[action] == "login") { 
 		foreach($errors as $err => $str) {
@@ -50,7 +52,7 @@ function loginform($errors=array(),$input=array()) {
 	print($form);
 }
 
-function regform($errors=array(),$input=array()) {
+function regform($errors=array(),$input=array()) { // Outputs the registration form with error messages and input from previous attempts (if any)
 	$form = file_get_contents("forms/register.html");
 	if($input[action] == "register") {
 		foreach($errors as $err => $str) {

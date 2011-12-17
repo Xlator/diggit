@@ -1,6 +1,6 @@
 <?php
 
-/* Password hashing functions */
+/* --------- Password hashing and comparison functions --------- */
 
 // Generate a hash salt
 function generateSalt($length = 128) {	
@@ -14,24 +14,22 @@ function generateSalt($length = 128) {
 	return $salt;	 
 }
 
-// Hash a password
-function hashPassword($password,$salt) {
+function hashPassword($password,$salt) { // Hash a password
 	$hash = hash("sha512",$salt . $password);
 	$saltpass = $salt . $hash; // Prepend the salt to the hash for storage
 	return($saltpass);
 }
 
-// Check an entered password against a stored hash
-function validatePassword($password,$storedhash) {
+function validatePassword($password,$storedhash) { // Check an entered password against a stored hash
 	$salt = substr($storedhash,0,128);
 	$hash = hashPassword($password,$salt);
 	if ($hash  == $storedhash) { return(true); }
 	else { return(false); }
 }
 
-/* Validation functions */
+/* --------- Validation functions --------- */
 
-function registrationErrors($input) { // Validate registration data, return array of errors (if any), else return empty array
+function registrationErrors($input) { // Validate registration data, return array of errors (if any), else return false
 	
 	$username_re = "/^[A-Za-z0-9\-_]{3,16}$/"; // Letters, numbers, hyphens and underscores only, 3-16 characters
 	if(!preg_match($username_re,trim($input[username]))) { $error[username] = "Invalid username"; }
