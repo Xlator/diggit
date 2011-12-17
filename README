@@ -7,15 +7,6 @@ function printComment($comment) :: Outputs a comment
 function timeSince($mysqltimestamp) :: returns time since given timestamp, rounded to the largest whole unit (e.g 3 hours 12 minutes ~ 3 hours)
 function printHeader() :: Outputs the site header
 function voteArrows($myvote,$subjectid) :: Outputs the appropriate voting arrows depending on the logged in user's vote
-function dbConn() :: Returns database link
-function dbQuery($query) :: Returns result of query, logs error and returns false on failure
-function dbQueryId($query) :: Returns insert id of query
-function dbFirstResult($query) :: Returns first row of query result as indexed array
-function dbFirstResultAssoc($query) :: Returns first row of query result as associative array
-function dbResultArray($query) :: Returns query result as associative array
-function dbResultExists($query) :: Returns true if a result is found, false if it isn't
-function dbEscape($string) :: Returns escaped string to prevent SQL insertion attacks
-function dbEscapeArray($array) :: Returns escaped variable to prevent SQL insertion
 
 /* --------- Database connection/query helper functions --------- */
 function dbConn() :: Returns database link
