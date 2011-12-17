@@ -1,5 +1,7 @@
 <?php
 
+/* Link input validation/cleaning */
+
 function linkErrors($input) { // Takes an array of link data, returns array of errors (if any) or false on no errors.
 	if(trim($input[title]) == "") { $error[title] = "You must enter a link title"; }
 	if(!filter_var(trim($input[url]),FILTER_VALIDATE_URL)) { $error[url] = "You must enter a valid URL"; }
@@ -34,6 +36,8 @@ function cleanLink($input) { // Takes an array of link data, returns same but sa
 	}	
 	return($input);
 }
+
+/* Link output */
 
 function printLink($link) {
 	$template = file_get_contents("templates/link.html");
@@ -73,8 +77,6 @@ function printLink($link) {
 			 "COMMENTS" => $comments, "ID" => $link[id],
 			 "ARROWS" => $arrows);
 
-	//$placeholders = array("{TITLE}","{URL}","{DOMAIN}","{USER}","{POINTS}","{CAT}","{NSFW}","{TIME}","{COMMENTS}","{ID}","{ARROWS}");
-	//$replace = array($link[title],$link[link],$link[domain],getUsername($link[user]),"$link[points] $p",$link[category],$nsfw,$time,$comments,$link[id],$arrows);
 	
 	foreach($placeholders as $p => $value) {
 		$template = str_replace("{".$p."}",$value,$template);

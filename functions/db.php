@@ -3,6 +3,12 @@
 // Include helper functions
 require("functions/dbhelper.php");
 
+function recaptchaKey($key) { // get the reCAPTCHA key from the database. $key can be 'public' or 'private'
+	$result = dbFirstResult("SELECT value FROM config WHERE name='recaptcha_$key'");
+	if(empty($result)) { return("reCAPTCHA $key key not available"); }
+	return($result);
+}
+
 function getUsername($id) { // Returns name of user with given id
 	$id = intval($id);
 	return(dbFirstResult("SELECT username FROM users WHERE id=$id"));
@@ -31,6 +37,16 @@ function registerUser($input) { // Writes user info to database on successful re
 	return($insert);
 }
 
+function getLink($id) { // Fetch a single link by id
+	$query = "
+	SELECT links.*,IFNULL(r.votes,0) AS votes,IFNULL(t.points,0) AS points,c.comments FROM links
+	LEFT JOIN recentvotes AS r ON links.id=r.subjectid AND r.type='link'
+	LEFT JOIN totalvotes AS t ON links.id=t.subjectid AND t.type='link'
+	LEFT JOIN commentcounts AS c ON links.id=c.linkid
+	WHERE links.id=$id LINIT 1";
+	return(dbFirstResult($query));
+}
+
 function getLinks($page=1,$limit=25,$category=NULL) { // Fetch and return array of links
 	$page = intval($page);
 	switch($_GET[order]) {
@@ -57,6 +73,11 @@ function getLinks($page=1,$limit=25,$category=NULL) { // Fetch and return array 
 function linkExists($url) { // Return true if the given URL has already been posted
 	$url = dbEscape($url);
 	return(dbResultExists("SELECT id FROM links WHERE link='$url'"));
+}
+
+function linkIdExists($id) { // return true if the link with the given id exists
+	$id = intval($id);
+	return(dbResultExists("SELECT id FROM links WHERE id=$id"));
 }
 
 function categoryExists($cat) { // Return true if the given category exists
@@ -131,7 +152,7 @@ function vote($userid,$subjectid,$type,$vote) { // Enters, removes or edits a vo
 	$userid = intval($userid);
 	$subjectid = intval($subjectid);
 	$vote = intval($vote);
-
+	//print_r(func_get_args());
 	switch($vote) {
 	case 0:
 		// Unset/delete vote
@@ -158,7 +179,6 @@ function vote($userid,$subjectid,$type,$vote) { // Enters, removes or edits a vo
 
 	// Grab and return the new vote count
 	$result = dbFirstResult("SELECT points FROM totalvotes WHERE subjectid=$subjectid AND type='$type'");
-	//var_dump($result[0]);
 	if(empty($result)) { $result = 0; }		
 	if($result != 1 && $result != -1) { $p = "points"; }
 	else { $p = "point"; }
