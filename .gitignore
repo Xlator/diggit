@@ -1,0 +1,5 @@
+*.sw?
+Result
+my.sql
+config.php
+test.php

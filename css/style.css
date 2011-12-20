@@ -1,3 +1,10 @@
+q {
+	display:block;
+	border-left: 1px solid blue;
+	margin-left: 0.8em;
+	padding-left: 0.2em;
+}
+
 header.top { 
 	display: inline-block;
 	width:100%;
@@ -37,6 +44,14 @@ li {
 	margin-bottom:0.5em; 
 	width:60.5em;
 	padding-top:0.2em;
+}
+
+#comment {
+	margin-bottom:1em;
+}
+
+div.commentform {
+	margin-left:3em;
 }
 
 div.linklist {
@@ -80,6 +95,27 @@ article.link footer span {
 	
 }
 
+article.comment {
+	margin-bottom:1.5em;
+}
+
+article.comment header {
+	padding-bottom:0.2em;
+	color: #444;
+}
+
+article.comment header a { 
+	color: #08F; 
+	text-decoration:none;
+	font-weight: bold;
+}
+
+article.comment p {
+	text-align: left;
+	display:inline-block;
+	width:93%;
+}
+
 span.points { margin-right:0em; }
 
 span.buttons { float: right; }
@@ -89,13 +125,13 @@ article.link footer a { font-weight: bold; }
 
 div.vote { 
 	float: left;
-	display: block;
 	width: 14px;
-	height: 36px;
+	min-height: 36px;
 	margin-left:1.2em;
-	margin-right:0.3em;
+	margin-right:5px;
 	padding-top: 3px;
 	padding-bottom: 3px;
+	clear: both;
 }
 
 div.arrowup {

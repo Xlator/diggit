@@ -35,4 +35,11 @@ $(document).ready (function () {
 		});
 	
 	});
+
+	$("a.reply").click(function() {
+		var formid=$(this)[0].id;	
+		$("div.commentform:not(:first)").hide(); // Hide all comment boxes except the first one
+		$(this).parent().nextAll("div").slideToggle("slow");
+		return false;
+	});
 });

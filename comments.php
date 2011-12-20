@@ -7,13 +7,15 @@ require("functions/db.php");
 require("functions/links.php");
 require("functions/common.php");
 require("functions/comments.php");
+require("functions/forms.php");
 
 printHeader();
 print "<div class=linklist><ul>";
 $link = getLink($linkid);
-print "</div>";
+print "<ul class=comments>";
 
 print(printLink($link));
+include "forms/comment.html";
 $comments = getComments($_GET[linkid]);
 commentTree($comments);
 

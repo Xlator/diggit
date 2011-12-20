@@ -71,4 +71,11 @@ function regform($errors=array(),$input=array()) { // Outputs the registration f
 	print($form);
 }
 
-
+function commentform($id,$hide=0) {
+	$form = file_get_contents("forms/comment.html");
+	if($_SESSION[id] != 0) { // Make sure we're logged in
+		$form = str_replace("{ID}",$id,$form);
+		if($hide == 1) { $form = str_replace("{HIDE}","style=display:none;",$form); }
+		return($form);
+	}
+}
