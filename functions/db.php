@@ -204,8 +204,7 @@ function getCategories($ownerid=false) { // Get an array of categories, optional
 
 /* --------- Comment table functions --------- */
 
-function sendComment($input) {
-	// takes an array of sanitized input
+function sendComment($input) { // Takes an array of sanitized input. Submits comment to database and returns ID.
 	$input = dbEscapeArray($input);
 	$linkid = intval($_GET[linkid]);
 	if(intval($input[edit]) == 1) { 
@@ -232,7 +231,7 @@ function rawComment($commentid) { // Returns raw form of comment with given ID (
 	return(dbFirstResult("SELECT text FROM comments WHERE id=$commentid"));
 }
 
-function deleteComment($commentid) {
+function deleteComment($commentid) { // Deletes comment with given ID
 	$commentid = intval($commentid);
 	$owner = dbFirstResult("SELECT userid FROM comments WHERE id=$commentid"); 
 	if($owner == $_SESSION[id]) { // Check that the user owns the comment they are editing

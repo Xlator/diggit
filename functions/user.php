@@ -2,8 +2,7 @@
 
 /* --------- Password hashing and comparison functions --------- */
 
-// Generate a hash salt
-function generateSalt($length = 128) {	
+function generateSalt($length = 128) { // Generate a hash salt
 	// List characters
 	$characters = "abcdef0123456789";
 	
