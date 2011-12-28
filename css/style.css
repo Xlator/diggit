@@ -1,3 +1,6 @@
+body {
+	font-family: sans;
+}
 q {
 	display:block;
 	border-left: 1px solid blue;
@@ -52,6 +55,34 @@ li {
 
 div.commentform {
 	margin-left:3em;
+}
+
+form.commentform textarea {
+	color: #999;
+	width:40em;
+	height: 5em;
+	border:1px
+	dashed #AAA;
+	margin-top:6px;
+}
+
+form.commentform textarea.active {
+	color: #000;
+}
+
+input[type=submit] {
+	background: #DDD;
+	border: 1px dotted #000;
+}
+a.reply, a.edit, a.delete {
+	color: #333;
+	font-weight: bold;
+	line-height: 1.4em;
+	text-decoration: none;
+}
+
+a.yes a.no {
+	color: #F00;
 }
 
 div.linklist {
@@ -134,6 +165,13 @@ div.vote {
 	clear: both;
 }
 
+div.hide {
+	opacity: 0.0;
+}
+
+div.linkedit {
+	display: none;
+}
 div.arrowup {
 	display:block;
 	width:14px;

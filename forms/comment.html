@@ -1,7 +1,8 @@
 <div class="commentform" {HIDE}>
-<form class="commentform" method=post action=comments.php id={ID} >
+	<form class="commentform" method=post action=comments.php?linkid={LINKID} id={ID} >
 	<input type=hidden name=parent value={ID}>
-	<textarea style="width:40em; height: 5em; border:1px dashed #AAA; margin-top:6px;">comment...</textarea><br />
-	<input type=submit>
+	<input type=hidden name=edit value=0>
+	<textarea name=comment id={ID}>comment...</textarea><br />
+	<input type=submit value=Comment disabled> <button name=cancel style="display: none">Cancel</button>
 </form>
 </div>

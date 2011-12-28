@@ -12,9 +12,10 @@ if($_POST) {
 		
 	if(!linkErrors($input)) {
 		$linkid = sendLink($input);
-		header("Location: comments.php?link=$linkid");
+		if($_POST[edit]) { $linkid = intval($_POST[edit]); }
+		header("Location: comments.php?linkid=$linkid");
 	}	
 	$errors = linkErrors($input);
 }
 
-linkform($errors,$input);
+print(linkform($errors,$input));

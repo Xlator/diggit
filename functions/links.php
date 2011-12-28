@@ -11,7 +11,7 @@ function linkErrors($input) { // Takes an array of link input, returns array of 
 		$re = "/\.[a-z]{2,4}$/";
 		if(!preg_match($re,$parsed_url[host])) { $error[url] = "You must enter a valid URL"; }
 		// If the link already exists, return error.
-		elseif(linkExists($input[url])) { $error[url] = "This link has already been posted"; }
+		elseif(linkExists($input[url]) && intval($input[edit]) == 0) { $error[url] = "This link has already been posted"; }
 	}
 		
 	if(isset($error)) { return($error); }
@@ -44,12 +44,14 @@ function printLink($link) { // Prints a link
 	$nsfw = "";
 	$time = timeSince($link[time]);
 	if($link[nsfw] == 1) { $nsfw = "<strong class=nsfw>:: NSFW ::</strong>"; }
+	else { $nsfw = "<strong class=nsfw style=display:none;>:: NSFW ::</strong>"; }
 	if($link[points] == NULL) { $link[points] = 0; }
 	if($link[points] == 1 || $link[points] == -1) { $p = "point"; }
 	else { $p = "points"; }
 	$points = "$link[points] $p";
 	$vote = getMyVote($_SESSION[id],$link[id],'link');
 	$arrows = voteArrows($vote,$link[id]);
+	
 	switch($link[comments]) {
 		case 0:
 			$comments = "<a href=comments.php?linkid=$link[id]>comment</a>";
@@ -64,9 +66,13 @@ function printLink($link) { // Prints a link
 	
 	//If we are logged in, show edit/delete/nsfw buttons on own links
 	if($_SESSION[id] == $link[user]) {	
-		$buttons = "<a href=edit.php?id=$link[id]&nsfw=1>nsfw?</a>
-			   <a href=edit.php?id=$link[id]>edit</a>
-			   <a href=edit.php?id=$link[id]&delete=1>delete</a>";
+		if($link[nsfw] == 0) { $nsfwlink = "<a class='nsfw' href=# id=$link[id]>nsfw?</a>"; }
+		else { $nsfwlink = "<a class='nsfw on' href=# id=$link[id]>sfw?</a>"; }
+		$buttons = "$nsfwlink 
+			   <a class=linkedit href=#>edit</a>
+			   <a class=linkdel href=edit.php?id=$link[id]&delete=1>delete</a> <span style=display:none;float:left;><a class='linkdel no' href=#>no</a><a class='linkdel yes' href=# id=$link[id]>yes</a></span>";
+		$input = array("edit" => $link[id], "title" => $link[title], "cat" => $link[category], "url" => $link[link], "nsfw" => $link[nsfw]);
+		$editform = linkform(array(),$input);
 	}
 	else { $buttons=""; }
 
@@ -75,7 +81,7 @@ function printLink($link) { // Prints a link
 			 "POINTS" => $points, "CAT" => $link[category],
 			 "NSFW" => $nsfw, "TIME" => $time, "BUTTONS" => $buttons,
 			 "COMMENTS" => $comments, "ID" => $link[id],
-			 "ARROWS" => $arrows);
+			 "ARROWS" => $arrows, "EDITFORM" => $editform);
 
 	
 	foreach($placeholders as $p => $value) {

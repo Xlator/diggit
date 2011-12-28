@@ -22,28 +22,108 @@ function printComment($comment,$indent) { // Outputs a comment
 	$points = "$comment[points] $p";
 	$vote = getMyVote($_SESSION[id],$comment[id],'comment');
 	$arrows = voteArrows($vote,$comment[id]);
-	$text = parseComment($comment[text]);
+	if($comment[deleted] != 0) { 
+		$text = "<em>deleted</em>"; 
+		$arrows = str_replace("'vote'","'vote hide'",$arrows);
+	}
+	else { $text = parseComment($comment[text]); }
 	$reply = commentform($comment[id],1); // 1 to hide the form by default
+	
+	if($_SESSION[id] != 0 && $comment[deleted] == 0) { $replylink = "<a class=reply id=$comment[id] href=#>reply</a>"; }
+		
+	if($_SESSION[id] == $comment[userid] && $comment[deleted] == 0) { 
+		$edit = "<a class=edit id=$comment[id] href=#>edit</a>"; 
+		$delete = "<a class=delete href=#>delete</a> <span style=display:none;><a class='delete  yes' href=# id=$comment[id]>yes</a> / <a class='delete  no' href=#>no</a></span>"; 
+	}
+	
 	$placeholders = array("ID" => $comment[id], "USER" => $comment[username], 
 			      "USERID" => $comment[userid], "TIME" => timeSince($comment[time]), 
 			      "ARROWS" => $arrows, "TEXT" => $text, "POINTS" => $points,
-		      	      "INDENT" => $indent, "REPLYBOX" => $reply);
+			      "INDENT" => $indent, "REPLYBOX" => $reply, "REPLY" => $replylink, 
+			      "EDIT" => $edit, "DELETE" => $delete, "LINKID" => $comment[linkid]);
 	foreach($placeholders as $p => $value) {
 		$template = str_replace("{".$p."}",$value,$template);
 	}
+	
+	if($comment[deleted] != 0) {
+		$template = str_replace("opacity:1","opacity:0.33",$template);
+	}
+	
 	return($template);
+
 }
 
-function parseComment($text) {
-	$searches = array("bold" => "/\*{2}([^*]+?)\*{2}/m",
-			  "italic" => "/\*{1}([^*]+?)\*{1}/m",
-			  "quote" => "/^> (.*)/m",
-		  	  "code" => "/^    (.*)/m");
-	$replacements = array("bold" => "<strong>\$1</strong>",
-		              "italic" => "<em>\$1</em>",
-			      "quote" => "<q>\$1</q>",
-		      	      "code" => "<pre>\$1</pre>" );
+function parseQuote($text) { // Callback function for preg_replace for quotes in comments
+	$lines = explode("\n",$text[0]);
+	$linecount = count($lines);
+	$c = 1;
+	$q = "<q>";
+	//print_r($lines);
+	foreach($lines as $i => $l) {
+		if($l == "") { $q .= ""; }
+		else {
+		if(preg_match("/^> (.*)/s",$l,$match)) {
+			if($c == $linecount) { // Close the q tag if we're on the last line of the comment
+				$q .= $match[1]."</q>";
+				break;
+			}		
+			else {
+				$q .= "$match[1]\n";
+				array_shift($lines); // Remove matching lines from the array of remaining lines
+			}
+		}
 
+		else { // If we're no longer quoting, end the q tag and insert the rest of the comment before returning the string.
+			$q .= "</q>".implode("\n",$lines);
+			break;
+		}
+		}
+	}
+	return($q);
+}
+
+function parseCode($text) { // Callback function for preg_replace for code blocks in comments
+	$lines = explode("\n",$text[0]);
+	$linecount = count($lines);
+	$c = 1;
+	$q = "<code>";
+	foreach($lines as $i => $l) {
+		if(preg_match("/^[ ]{4}(.*)/",$l,$match)) {
+			if($c == $linecount) { // Close the code tag if we're on the last line of the comment
+				$q .= filter_var($match[1],FILTER_SANITIZE_SPECIAL_CHARS)."</code>";
+				break;
+			}		
+			else {
+				$q .= filter_var($match[1],FILTER_SANITIZE_SPECIAL_CHARS)."\n";
+				array_shift($lines); // Remove matching lines from the array of remaining lines
+			}
+		}
+
+		else { // If we're no longer in a code block, end the code tag and insert the rest of the comment before returning the string.
+			$q .= "</code>".implode("\n",$lines);
+			break;
+		}
+	}
+	return($q);
+}
+
+
+function parseComment($text) { // Parses comment formatting and sanitizes comment string
+	$text = filter_var($text,FILTER_SANITIZE_SPECIAL_CHARS);
+	//$quote = "/^> (.*)\n(?!\>)|$/s";
+/*(?<![\n]{1}?)*/	
+	$quote = "/.*?> ([^>]+)(\n(?!\>)|$)/s";
+	$code = "/^[ ]{4}(.*)\\n(?!\>)|$/s";
+	
+	$searches = array("bold" => "/\*{2}([^*]+?)\*{2}/m",
+			"italic" => "/\*{1}([^*]+?)\*{1}/m",
+			"link" => "/\[(.*)\]\((.*)\)/");
+	$replacements = array("bold" => "<strong>\$1</strong>",
+			    "italic" => "<em>\$1</em>",
+			      "link" => "<a href=\"$2\">$1</a>");
+	//$text = preg_replace_callback($quote,"parseQuote",$text);
+	//$text = preg_replace_callback($code,"parseCode",$text);
 	$text = preg_replace($searches,$replacements,$text);
-	return($text);
+	
+	return(nl2br($text));
 }	

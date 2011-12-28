@@ -162,16 +162,34 @@ function sendLink($input) { // takes an array of sanitized input to insert into 
 	if(!categoryExists($input[cat])) {
 		dbQuery("INSERT INTO categories (name) VALUES ('$input[cat]')");
 	}	
-	
-	$query = "INSERT INTO links (title,link,domain,category,user,nsfw)
-		VALUES ('$input[title]','$input[url]','$domain','$input[cat]',$_SESSION[id],$input[nsfw])";
-	
+	if(intval($input[edit])) {
+		$query = "UPDATE links SET title='$input[title]', link='$input[url]', domain='$domain', category='$input[cat]', nsfw=$input[nsfw] WHERE id=$input[edit]";
+	}
+	else {
+		$query = "INSERT INTO links (title,link,domain,category,user,nsfw)
+			  VALUES ('$input[title]','$input[url]','$domain','$input[cat]',$_SESSION[id],$input[nsfw])";
+	}
 	$id = dbQueryId($query);
 	
 	vote($_SESSION[id],$id,'link',1); // Auto-upvote own submissions
 	return($id);
 }
 
+function deleteLink($linkid) { // Delete link
+	$linkid = intval($linkid);
+	$owner = dbFirstResult("SELECT user FROM links WHERE id=$linkid");
+	if($_SESSION[id] == $owner) {
+		return(dbQuery("DELETE FROM links WHERE id=$linkid"));
+	}
+}
+
+function nsfw($linkid) { // Toggle nsfw status of link
+	$linkid = intval($linkid);
+	$nsfw = dbFirstResult("SELECT nsfw FROM links WHERE id=$linkid");
+	if($nsfw == 0) { $nsfw = 1; }
+	else { $nsfw = 0; }
+	dbQuery("UPDATE links SET nsfw=$nsfw WHERE id=$linkid");
+}
 /* --------- Category table functions --------- */
 
 function categoryExists($cat) { // Return true if the given category exists
@@ -189,11 +207,37 @@ function getCategories($ownerid=false) { // Get an array of categories, optional
 function sendComment($input) {
 	// takes an array of sanitized input
 	$input = dbEscapeArray($input);
+	$linkid = intval($_GET[linkid]);
+	if(intval($input[edit]) == 1) { 
+		$owner = dbFirstResult("SELECT userid FROM comments WHERE id=$input[parent]"); 
+		if($owner == $_SESSION[id]) { // Check that the user owns the comment they are editing
+			return(dbQueryId("UPDATE comments SET text='$input[comment]' WHERE id=$input[parent]"));
+		}	
+	}
+	else {
+		if(intval($input[parent] == 0)) { $input[parent] = "NULL"; }
+		$queryid = dbQueryId("INSERT INTO comments (userid,linkid,parent,text) VALUES ($_SESSION[id],$linkid,$input[parent],'$input[comment]')");
+		vote($_SESSION[id],$queryid,"comment",1); // Auto-upvote own comment
+		return($queryid);
+	}
 }
 
 function getComments($linkid) { // Returns an array of comments to the given link ID
 	$linkid = intval($linkid);
-	return(dbResultArray("SELECT c.*,u.username,IFNULL(t.points,0) AS points FROM comments AS c JOIN users AS u ON u.id=c.userid LEFT JOIN totalvotes AS t ON c.id=t.subjectid AND t.type='comment' WHERE c.linkid=$linkid"));
+	return(dbResultArray("SELECT c.*,u.username,IFNULL(t.points,0) AS points FROM comments AS c JOIN users AS u ON u.id=c.userid LEFT JOIN totalvotes AS t ON c.id=t.subjectid AND t.type='comment' WHERE c.linkid=$linkid ORDER BY time DESC"));
+}
+
+function rawComment($commentid) { // Returns raw form of comment with given ID (for comment editing)
+	$commentid = intval($commentid);
+	return(dbFirstResult("SELECT text FROM comments WHERE id=$commentid"));
+}
+
+function deleteComment($commentid) {
+	$commentid = intval($commentid);
+	$owner = dbFirstResult("SELECT userid FROM comments WHERE id=$commentid"); 
+	if($owner == $_SESSION[id]) { // Check that the user owns the comment they are editing
+		return(dbQuery("UPDATE comments SET deleted=1 WHERE id=$commentid"));
+	}
 }
 
 /* --------- Vote table functions --------- */
