@@ -1,11 +1,17 @@
+
+/* --------- Comment output functions --------- */
 function commentTree($comments,$parent=NULL,$layer=1) :: Builds comment tree, and calls printComment() for each comment in the correct order.
 function printComment($comment,$indent) :: Outputs a comment
 function parseQuote($text) :: Callback function for preg_replace for quotes in comments
 function parseCode($text) :: Callback function for preg_replace for code blocks in comments
 function parseComment($text) :: Parses comment formatting and sanitizes comment string
+
+/* --------- Common functions (used throughout the site) --------- */
 function timeSince($mysqltimestamp) :: returns time since given timestamp, rounded to the largest whole unit (e.g 3 hours 12 minutes ~ 3 hours)
 function printHeader() :: Outputs the site header
 function voteArrows($myvote,$subjectid) :: Outputs the appropriate voting arrows depending on the logged in user's vote
+
+/* --------- Database connection/query helper functions --------- */
 function dbConn() :: Returns database link
 function dbQuery($query) :: Returns result of query, logs error and returns false on failure
 function dbQueryId($query) :: Returns insert id of query
@@ -15,11 +21,15 @@ function dbResultArray($query) :: Returns query result as associative array
 function dbResultExists($query) :: Returns true if a result is found, false if it isn't
 function dbEscape($string) :: Returns escaped string to prevent SQL insertion attacks
 function dbEscapeArray($array) :: Returns escaped variable to prevent SQL insertion
+
+/* --------- User table functions --------- */
 function getUsername($id) :: Returns name of user with given id
 function getUserid($username) :: Returns id of user with given name
 function getPassword($username) :: Returns password hash of user with given name
 function userExists($parameter,$value) :: Checks if a user exists, either by email or username
 function registerUser($input) :: Writes user info to database on successful registration 
+
+/* --------- Link table functions --------- */
 function getLink($id) :: Fetch a single link by id
 function getLinks($page=1,$limit=25,$category=NULL) :: Fetch and return array of links
 function linkExists($url) :: Return true if the given URL has already been posted
@@ -27,24 +37,38 @@ function linkIdExists($id) :: return true if the link with the given id exists
 function sendLink($input) :: takes an array of sanitized input to insert into the database. on success, returns the id of the submitted link
 function deleteLink($linkid) :: Delete link
 function nsfw($linkid) :: Toggle nsfw status of link
+
+/* --------- Category table functions --------- */
 function categoryExists($cat) :: Return true if the given category exists
 function getCategories($ownerid=false) :: Get an array of categories, optionally only those owned by a specific user
+
+/* --------- Comment table functions --------- */
 function sendComment($input) :: Takes an array of sanitized input. Submits comment to database and returns ID.
 function getComments($linkid) :: Returns an array of comments to the given link ID
 function rawComment($commentid) :: Returns raw form of comment with given ID (for comment editing)
 function deleteComment($commentid) :: Deletes comment with given ID
+
+/* --------- Vote table functions --------- */
 function getMyVote($userid,$subjectid,$type) :: Return given user's vote for given link/comment (or 0 if they haven't voted)
 function getMyPoints($userid) :: Get given user's total points (from their submissions and comments)
 function vote($userid,$subjectid,$type,$vote) :: Enters, removes or edits a vote from user for subject, returns new vote count.
+
+/* --------- Form output functions --------- */
 function linkform($errors=array(),$input=array()) :: Outputs the link submission form with error messages and input from previous attempt (if any)
 function loginform($errors=array(),$input=array()) :: Outputs the login form with error messages and input from previous attempt (if any)
 function regform($errors=array(),$input=array()) :: Outputs the registration form with error messages and input from previous attempts (if any)
 function commentform($id=0,$hide=0) :: Outputs a comment form for the given comment id, optionally hidden
+
+/* --------- Link input validation/cleaning functions --------- */
 function linkErrors($input) :: Takes an array of link input, returns array of errors (if any) or false on no errors.
 function cleanLink($input) :: Takes an array of link data, returns same but sanitized.
 function printLink($link) :: Prints a link
+
+/* --------- Password hashing and comparison functions --------- */
 function generateSalt($length = 128) :: Generate a hash salt
 function hashPassword($password,$salt) :: Hash a password
 function validatePassword($password,$storedhash) :: Check an entered password against a stored hash
+
+/* --------- Validation functions --------- */
 function registrationErrors($input) :: Validate registration data, return array of errors (if any), else return false
 function loginErrors($input) :: Check for errors in the login form
