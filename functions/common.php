@@ -22,6 +22,7 @@ function timeSince($mysqltimestamp) { // returns time since given timestamp, rou
 function printHeader() { // Outputs the site header
 	$header = file_get_contents("templates/header.html");
 	$points = getMyPoints($_SESSION[id]);
+	if($points == NULL) { $points = 0; }
 	if($_SESSION[id]==0) { $login = "<a href=login.php class=login>login/register</a>"; 
 				$submit = ""; }
 	else { $login = "<a href=user.php?id=$_SESSION[id] class=login>$_SESSION[username] ($points)</a> <a href=./?logout=1 class=login>logout</a>"; 

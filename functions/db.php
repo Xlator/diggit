@@ -124,12 +124,12 @@ function getLinks($page=1,$limit=25,$category=NULL) { // Fetch and return array 
 
 	$page--;
 	$offset=($page*$limit); // Pagination	
-	$query = "
-	SELECT links.*,IFNULL(r.votes,0) as votes,IFNULL(t.points,0) as points,c.comments FROM links
-	LEFT JOIN recentvotes AS r ON links.id=r.subjectid AND r.type='link' 
-	LEFT JOIN totalvotes AS t ON links.id=t.subjectid AND t.type='link'
-	LEFT JOIN commentcounts AS c ON links.id=c.linkid
-	ORDER BY $order LIMIT $offset,$limit";
+	$query = "SELECT l.id,l.title,l.link,l.domain,IFNULL(l.category,'main') as category,l.user,
+		  l.time,l.nsfw,IFNULL(r.votes,0) as votes,IFNULL(t.points,0) as points,c.comments FROM links AS l
+		  LEFT JOIN recentvotes AS r ON l.id=r.subjectid AND r.type='link' 
+		  LEFT JOIN totalvotes AS t ON l.id=t.subjectid AND t.type='link'
+		  LEFT JOIN commentcounts AS c ON l.id=c.linkid
+		  ORDER BY $order LIMIT $offset,$limit";
 	return(dbResultArray($query));
 }
 
@@ -248,7 +248,7 @@ function getMyVote($userid,$subjectid,$type) { // Return given user's vote for g
 }
 
 function getMyPoints($userid) { // Get given user's total points (from their submissions and comments)
-	$query="SELECT (IFNULL(l.links,0)+IFNULL(c.comments,0)) AS points 
+	$query="SELECT (IFNULL(IFNULL(l.links,0)+IFNULL(c.comments,0),0)) AS points 
 		FROM (SELECT users.id AS id, sum(v.vote) as links FROM users 
 	        LEFT JOIN links ON links.user=users.id 
 	        LEFT JOIN votes as v ON v.subjectid=links.id AND v.type='link' GROUP BY id) as l 
