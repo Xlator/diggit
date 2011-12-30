@@ -49,9 +49,10 @@ function printLink($link) { // Prints a link
 	if($link[points] == 1 || $link[points] == -1) { $p = "point"; }
 	else { $p = "points"; }
 	$points = "$link[points] $p";
-	$vote = getMyVote($_SESSION[id],$link[id],'link');
-	$arrows = voteArrows($vote,$link[id]);
-	
+	$myvote = 0;
+	if($link[myvote]) { $myvote = $link[myvote]; }
+	if($_SESSION[lastvisited] == $link[id]) { $last = "class=lastvisited"; }
+	$arrows = voteArrows($myvote,$link[id]);
 	switch($link[comments]) {
 		case 0:
 			$comments = "<a href=comments.php?linkid=$link[id]>comment</a>";
@@ -64,6 +65,9 @@ function printLink($link) { // Prints a link
 			break;
 	}
 	
+	if($link[category] != "main") { // Only show the category if it isn't 'main'
+	$cat = "to <a class=linkcat href=./?category=$link[category]>$link[category]</a>";
+	}
 	//If we are logged in, show edit/delete/nsfw buttons on own links
 	if($_SESSION[id] == $link[user]) {	
 		if($link[nsfw] == 0) { $nsfwlink = "<a class='nsfw' href=# id=$link[id]>nsfw?</a>"; }
@@ -77,11 +81,12 @@ function printLink($link) { // Prints a link
 	else { $buttons=""; }
 
 	$placeholders = array("TITLE" => $link[title], "URL" => $link[link],
-		         "DOMAIN" => $link[domain], "USER" => getUsername($link[user]),
-			 "POINTS" => $points, "CAT" => $link[category],
+		         "DOMAIN" => $link[domain], "USER" => $link[username], "USERID" => $link[user],
+			 "POINTS" => $points, "CAT" => $cat,
 			 "NSFW" => $nsfw, "TIME" => $time, "BUTTONS" => $buttons,
 			 "COMMENTS" => $comments, "ID" => $link[id],
-			 "ARROWS" => $arrows, "EDITFORM" => $editform);
+			 "ARROWS" => $arrows, "EDITFORM" => $editform,
+		 	 "LAST" => $last);
 
 	
 	foreach($placeholders as $p => $value) {

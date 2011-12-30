@@ -19,34 +19,55 @@ function printComment($comment,$indent) { // Outputs a comment
 	if($comment[points] == NULL) { $comment[points] = 0; }
 	if($comment[points] == 1 || $comment[points] == -1) { $p = "point"; }
 	else { $p = "points"; }
+
+	if(isset($_GET[linkid])) {
+		$user = "<a href=user.php?id=$comment[userid]>$comment[username]</a>";
+	}
+
+	elseif(isset($_GET[id])) {
+		$link = "<span><a href=comments.php?linkid=$comment[linkid]#$comment[id]>$comment[title]</a> in <a class=linkcat href=./?category=$comment[category]>$comment[category]</a></span>";
+	}
+
 	$points = "$comment[points] $p";
-	$vote = getMyVote($_SESSION[id],$comment[id],'comment');
-	$arrows = voteArrows($vote,$comment[id]);
+	$myvote = 0;
+	
+	if($comment[myvote]) {
+		$myvote = $comment[myvote];
+	}
+	
+	$arrows = voteArrows($myvote,$comment[id]);
+	
 	if($comment[deleted] != 0) { 
 		$text = "<em>deleted</em>"; 
 		$arrows = str_replace("'vote'","'vote hide'",$arrows);
 	}
-	else { $text = parseComment($comment[text]); }
-	$reply = commentform($comment[id],1); // 1 to hide the form by default
 	
-	if($_SESSION[id] != 0 && $comment[deleted] == 0) { $replylink = "<a class=reply id=$comment[id] href=#>reply</a>"; }
+	else { $text = parseComment($comment[text]); }
 		
-	if($_SESSION[id] == $comment[userid] && $comment[deleted] == 0) { 
-		$edit = "<a class=edit id=$comment[id] href=#>edit</a>"; 
-		$delete = "<a class=delete href=#>delete</a> <span style=display:none;><a class='delete  yes' href=# id=$comment[id]>yes</a> / <a class='delete  no' href=#>no</a></span>"; 
+	
+	if(!isset($_GET[id])) {	
+	$reply = commentform($comment[id],1); // 1 to hide the form by default
+		if($_SESSION[id] != 0 && $comment[deleted] == 0) { $replylink = "<a class=reply id=$comment[id] href=#>reply</a>"; }
+		
+		if($_SESSION[id] == $comment[userid] && $comment[deleted] == 0) { 
+			$edit = "<a class=edit id=$comment[id] href=#>edit</a>"; 
+			$delete = "<a class=delete href=#>delete</a> <span style=display:none;><a class='delete  yes' href=# id=$comment[id]>yes</a> / <a class='delete  no' href=#>no</a></span>"; 
+		}
+	}
+
+	if($comment[deleted] != 0) {
+		$deleted = "class=deleted";
 	}
 	
-	$placeholders = array("ID" => $comment[id], "USER" => $comment[username], 
+	$placeholders = array("ID" => $comment[id], "USER" => $user, "LINK" => $link, 
 			      "USERID" => $comment[userid], "TIME" => timeSince($comment[time]), 
 			      "ARROWS" => $arrows, "TEXT" => $text, "POINTS" => $points,
 			      "INDENT" => $indent, "REPLYBOX" => $reply, "REPLY" => $replylink, 
-			      "EDIT" => $edit, "DELETE" => $delete, "LINKID" => $comment[linkid]);
+			      "EDIT" => $edit, "DELETE" => $delete, "LINKID" => $comment[linkid],
+			      "DELETED" => $deleted);
+
 	foreach($placeholders as $p => $value) {
 		$template = str_replace("{".$p."}",$value,$template);
-	}
-	
-	if($comment[deleted] != 0) {
-		$template = str_replace("opacity:1","opacity:0.33",$template);
 	}
 	
 	return($template);

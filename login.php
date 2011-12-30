@@ -5,7 +5,8 @@ require("functions/db.php");
 require("functions/user.php");
 require("functions/links.php");
 require("functions/forms.php");
-
+require("functions/common.php");
+printHeader();
 if($_POST[action] == "register") {
 	if(!registrationErrors($_POST)) {
 		$userid = registerUser($_POST);

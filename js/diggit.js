@@ -63,7 +63,7 @@ $(document).ready (function () {
 		return false;
 	});
 
-	$("a.edit").click(function() {
+	$("a.edit").click(function() { // Edit a comment
 		$(this).toggleClass("open");
 		var commentid=$(this)[0].id;
 		$("textarea:not(:first)").val("comment...").removeClass("active"); // Reset all textareas except the first one
@@ -171,5 +171,19 @@ $(document).ready (function () {
 			$(this).parent().siblings("span").children("strong.nsfw").show(); // Show the "NSFW" marker
 		}
 	return false;
+	});
+
+	$("h3 > a").click(function() { // Insert the id of a clicked link into the "lastvisited" field in the user table
+		var linkid=$(this)[0].id;
+		var linkurl=$(this).attr('href');
+		$.get("ajax/lastvisited.php", { id: linkid });  
+		window.location = linkurl; 
+		return false;
+	});
+
+	$("a.catselect").click(function() { // When submitting/editing a link, insert the name of a clicked category into the category input
+		var cat=$(this).text();
+		$(this).parent().prevAll("input#catbox").val(cat);
+		return false;
 	});
 });

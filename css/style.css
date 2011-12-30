@@ -8,12 +8,12 @@ q {
 	padding-left: 0.2em;
 }
 
-header.top { 
+nav.top { 
 	display: inline-block;
 	width:100%;
 	font-size:0.6em;
 	height:1em;
-	font-weight: bold;
+	font-weight: 500;
 	padding-left:15px;
 	padding-top: 0px;
 	padding-bottom: 4px;
@@ -22,9 +22,10 @@ header.top {
 	margin-bottom: 5px;
 	font-family: sans;
 }
-
-header.top a { margin-left: 5px; text-decoration: none; font-weight:bold; color: #A00; }
-header.top a:hover { text-shadow; 2px 2px 2px #000; }
+nav.top a { margin-left: 5px; text-decoration: none; font-weight:bold; color: #A00; }
+nav.top a.diggit { color: #000; }
+nav.top a.headercat { color: #000; font-weight: 500; }
+nav.top a:hover { border-bottom: 1px dashed #AAA; background: #EEE; }
 
 a.login { float: right; margin-right:1.8em; }
 
@@ -38,7 +39,7 @@ h1 {
 }
 
 ul {
-	list-style-type:none;
+	/*list-style-type:none;*/
 }
 
 li { 
@@ -87,6 +88,7 @@ a.yes a.no {
 
 div.linklist {
 	margin-right: 45%; 
+	margin-bottom: 10px;
 }
 
 article.link { 
@@ -98,8 +100,8 @@ article.link {
 	width:57em;
 }
 
-li:hover { background: #DFF; }
-
+li#link:hover, li#comment:hover { background: #DFF; }
+li#comment.deleted { opacity:0.33; }
 article.link h3 { 
 	font-size: 1.8em;
 	display: inline;
@@ -108,7 +110,7 @@ article.link h3 {
 }
 
 article.link a { 
-	color: #08F; 
+	color: #08F;
 	text-decoration:none;
 	font-weight: 300; }
 
@@ -122,9 +124,16 @@ article.link footer {
 	padding:3px;
 	border-bottom: 1px dotted #999; }
 
-article.link footer span {
-	
+article.link footer span a {
+	font-weight: 600;
 }
+
+article.comment header span a.linkcat, 
+article.link footer span a.linkcat { 
+	font-weight: 400; font-style:italic; 
+}
+
+
 
 article.comment {
 	margin-bottom:1.5em;
@@ -197,3 +206,43 @@ div.downvote {
 	background-image:url(../images/sprites.png); 
 	background-position: -80px -536px; 
 }
+
+span.pagination { margin-left: 2em; display: block; font-size: 0.6em; margin-bottom:5px; line-height: 1.2em; color: #000; font-weight:300;}
+span.pagination a { text-decoration:none; font-weight: bold; color: #333; padding-right: 0.5em; }
+.lastvisited { border: 1px dashed #555; }
+
+section.loginform, section.regform { margin-top: 1em; border: 1px dashed #666; padding:1em; margin-left: 2em; display: inline-block; vertical-align: top; }
+ul.usernamerules li, ul.passwordrules li { list-style-type: circle; margin-left: 1em; }
+.regform h2, .loginform h2 { margin-bottom: 10px; border-bottom: 1px solid #666; }
+
+header.userprofile {
+	margin-left: 1em;
+	margin-top: 0.3em;
+}
+header.userprofile h2 {
+	display: inline;
+}
+span.regtime {
+	color: #999;
+	font-size: 0.65em;
+}
+
+ul.userinfo li{ display: inline; margin-right: 1em; font-weight: bold; color: #333; }
+header.userprofile nav { 
+	display: inline-block;
+	width:100%;
+	height:1em;
+	font-weight: 500;
+	padding-left:15px;
+	padding-top: 0px;
+	padding-bottom: 4px;
+	/*border-bottom:1px solid #999;*/
+	margin-top: 0px;
+	margin-bottom: 5px;
+	font-family: sans;
+}
+
+header.userprofile nav a { text-decoration: none; font-weight:bold; color: #A00; }
+header.userprofile nav a:hover { border-bottom: 1px dashed #AAA; background: #EEE; }
+
+

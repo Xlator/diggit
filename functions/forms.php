@@ -26,7 +26,7 @@ function linkform($errors=array(),$input=array()) { // Outputs the link submissi
 
 	if($categories = getCategories()) {
 		foreach($categories as $cat) {
-			$cats .= "<a href='#' onClick=getElementById('catbox').value=('$cat[name]');>$cat[name]</a> ";
+			$cats .= "<a href=# class=catselect>$cat[name]</a> ";
 		}
 
 		$form = str_replace("{CATS}",$cats,$form);
