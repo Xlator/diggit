@@ -1,5 +1,4 @@
 $(document).ready (function () {
-	
 	$("div.arrowup, div.arrowdown").each(function() { // Voting
 		var type = $(this).parent().parent()[0].id;
 		var pointsid = $(this)[0].id;
@@ -41,6 +40,8 @@ $(document).ready (function () {
 		var formid=$(this)[0].id;	
 		$(this).toggleClass("open");
 		$("textarea:not(:first)").val("comment...").removeClass("active"); // Reset all textareas except the first one
+		$("div.formatting:not(:first)").hide();				   //
+		$("a.formathelp:not(:first)").text("formatting help");             //
 		$("input[type=submit]:not(:first)").attr("disabled","disabled"); // Disable submit buttons (to avoid accidental submission)
 		$("input[type=submit]").val("Comment");
 		
@@ -58,6 +59,7 @@ $(document).ready (function () {
 			$(this).text("reply"); // Reset the reply link
 			$(this).next("a.edit").show(); // Reset the edit link
 			$(this).parent().nextAll("div").hide();
+			$("div.formatting:not(:first)").hide();	
 		}
 		
 		return false;
@@ -67,8 +69,10 @@ $(document).ready (function () {
 		$(this).toggleClass("open");
 		var commentid=$(this)[0].id;
 		$("textarea:not(:first)").val("comment...").removeClass("active"); // Reset all textareas except the first one
-		$("input[type=submit]:not(:first)").attr("disabled","disabled");
-		$("input[type=submit]").val("Comment");
+		$("div.formatting:not(:first)").hide();				   //
+		$("a.formathelp:not(:first)").text("formatting help");             //
+		$("input[type=submit]:not(:first)").attr("disabled","disabled");   //
+		$("input[type=submit]").val("Comment");                            //
 		
 		if($(this).hasClass("open")) {
 			$("div.commentform:not(:first)").hide();		// Hide all comment boxes except the first one
@@ -90,6 +94,8 @@ $(document).ready (function () {
 			$(this).text("edit"); // Reset the edit link
 			$(this).prev("a.reply").show(); // Reset the reply link
 			$(this).parent().nextAll("div").hide();
+			$("div.formatting:not(:first)").hide();
+			$("a.formathelp:not(:first)").text("formatting help");
 		}
 		
 		return false;
@@ -144,7 +150,8 @@ $(document).ready (function () {
 		if($(this).hasClass("yes")) { // If the user confirms the deletion
 			var linkid=$(this)[0].id;
 			$.get("ajax/delete.php", { id: linkid, type: "link" }); // Send the AJAX request to delete the link from the database
-			$(this).parent().parent().parent().parent().parent().hide(); // Hide the deleted link
+			if(window.location.href.indexOf("comments.php") != -1) { window.location = "./"; } // Return to index if we're on the comments page
+			else { $(this).parent().parent().parent().parent().parent().hide() } // Hide the deleted link
 		}
 		else if($(this).hasClass("no")) { // If the user cancels the deletion
 			$(this).parent().siblings("a.linkdel").text("delete"); // Reset link text
@@ -176,14 +183,22 @@ $(document).ready (function () {
 	$("h3 > a").click(function() { // Insert the id of a clicked link into the "lastvisited" field in the user table
 		var linkid=$(this)[0].id;
 		var linkurl=$(this).attr('href');
-		$.get("ajax/lastvisited.php", { id: linkid });  
-		window.location = linkurl; 
+		$.get("ajax/lastvisited.php", { id: linkid }, window.location = linkurl); 
 		return false;
 	});
-
+	
 	$("a.catselect").click(function() { // When submitting/editing a link, insert the name of a clicked category into the category input
 		var cat=$(this).text();
 		$(this).parent().prevAll("input#catbox").val(cat);
 		return false;
 	});
+
+	$("a.formathelp").click(function() { // Show comment formatting help
+		//$("body").find("div.formatting").toggle();
+		$(this).parent().nextAll("div.formatting").toggle();
+		if($(this).parent().nextAll("div.formatting").is(":visible")) { $(this).text("hide help"); }
+		else { $(this).text("formatting help"); }	
+		return false; 
+	});
+
 });

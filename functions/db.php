@@ -64,12 +64,12 @@ function dbRowCount($query) { // Returns the number of rows in the query result
 	return(mysqli_num_rows($result));
 }
 
-function dbEscape($string) { // Returns escaped string to prevent SQL insertion attacks
+function dbEscape($string) { // Returns escaped string to prevent SQL injection attacks
 	$db = dbConn();
 	return(mysqli_real_escape_string($db,$string));
 }
 
-function dbEscapeArray($array) { // Returns escaped variable to prevent SQL insertion
+function dbEscapeArray($array) { // Returns escaped array to prevent SQL injection attacks
 	return(array_map("dbEscape",$array));
 }
 
@@ -96,7 +96,7 @@ function userExists($parameter,$value) { // Checks if a user exists, either by e
 	return(dbResultExists("SELECT id FROM users WHERE $parameter='$value'"));
 }
 
-function registerUser($input) { // Writes user info to database on successful registration 
+function registerUser($input) { // Writes user info to database on successful registration, returning the user id
 	$input = dbEscapeArray($input);
 	$salt = generateSalt(); 		
 	$hash = hashPassword($input[password],$salt);
@@ -152,14 +152,20 @@ function getLink($id) { // Fetch a single link by id
 	return(dbFirstResultAssoc($query));
 }
 
-function getLinks($page=1,$limit=25,$category=NULL,$user=NULL) { // Return array containing array of links, the current page and the total number of pages
+function getLinks($page=1,$limit=25,$category=NULL,$user=NULL,$domain=NULL) { // Return array containing array of links, the current page and the total number of pages
 	$page = intval($page);
 	$limit = intval($limit);
 	$user = intval($user);
 	$category = dbEscape($category);
+	$domain = dbEscape($domain);
+
 	if(!categoryExists($category)) { $where = ""; }
 	else { $where = "WHERE category='$category'"; }
-		
+
+	if($domain != NULL) {
+		$where = "WHERE domain='$domain'";
+	}
+
 	if($user != 0) {
 		if($where != "") { 
 			$where .= " AND user=$user ";
@@ -170,10 +176,13 @@ function getLinks($page=1,$limit=25,$category=NULL,$user=NULL) { // Return array
 	}
 
 	switch($_GET[order]) {
-		case "new":
+		case "new": // Latest links
 			$order = "time DESC, points DESC";
 			break;
-		case "hot":
+		case "top": // Most points (all time)
+			$order = "points DESC, time DESC";
+			break;
+		case "hot": // Most points in the last 48 hours
 		default:	
 			$order = "votes DESC, points DESC, time DESC";
 			break;
@@ -185,7 +194,8 @@ function getLinks($page=1,$limit=25,$category=NULL,$user=NULL) { // Return array
 	}
 
 	if($page > 0) { $page--; }
-	$offset=($page*$limit); // Pagination	
+	$offset=($page*$limit); // Pagination
+	
 	$query = "SELECT l.id, l.title, l.link, l.domain, IFNULL(l.category,'main') as category, l.user, u.username AS username,
 		  l.time, l.nsfw, IFNULL(r.votes,0) as votes, $myvote IFNULL(t.points,0) as points, c.comments FROM links AS l
 		  LEFT JOIN recentvotes AS r ON l.id=r.subjectid AND r.type='link' 
@@ -194,10 +204,12 @@ function getLinks($page=1,$limit=25,$category=NULL,$user=NULL) { // Return array
 		  LEFT JOIN users AS u ON l.user=u.id
 		  $myvotejoin $where
 		  ORDER BY $order LIMIT $offset,$limit";
+	
 	$totalrows = dbRowCount("SELECT * FROM links $where");
 	if($totalrows > $limit) { $page = $page+1; }
 	else { $page = 0; }
 	$totalpages = ceil($totalrows / $limit);
+
 	return(array(dbResultArray($query),"page" => $page, "totalpages" => $totalpages));
 }
 
@@ -211,32 +223,43 @@ function linkIdExists($id) { // return true if the link with the given id exists
 	return(dbResultExists("SELECT id FROM links WHERE id=$id"));
 }
 
+function domainExists($domain) { // Return true if there are any links with the given domain
+	$domain = dbEscape($domain);
+	return(dbResultExists("SELECT id FROM links WHERE domain='$domain'"));
+}
 
-function sendLink($input) { // takes an array of sanitized input to insert into the database. on success, returns the id of the submitted link
+function sendLink($input) { // takes an array of sanitized input to insert into the database. On success, returns the id of the submitted link
 	$input = dbEscapeArray($input);
 	
-	if(!isset($input[cat])) { $input[cat] = "main"; }
-		
 	if(!isset($input[nsfw])) { $input[nsfw] = 0; }
 	elseif($input[nsfw] == "on") { $input[nsfw] = 1; }	
 		
 	// extract hostname from URL
 	$url = parse_url($input[url]);
 	$domain = $url[host];
+	// omit www from the hostname
+	if(substr($domain,0,3) == "www") {
+		$domain = substr($domain,4);
+	}
 	
+	if(!isset($input[cat])) { $input[cat] = "main"; } // Use main category by default
 	if($input[cat] == "") { $input[cat] = "main"; }
-		
+	
 	// create the category if it doesn't previously exist in the database
 	if(!categoryExists($input[cat])) {
 		dbQuery("INSERT INTO categories (name) VALUES ('$input[cat]')");
 	}	
-	if(intval($input[edit])) {
-		$query = "UPDATE links SET title='$input[title]', link='$input[url]', domain='$domain', category='$input[cat]', nsfw=$input[nsfw] WHERE id=$input[edit]";
+	
+	if(intval($input[edit])) { // Check if we're editing or submitting
+		$query = "UPDATE links SET title='$input[title]', link='$input[url]', domain='$domain', 
+			  category='$input[cat]', nsfw=$input[nsfw] WHERE id=$input[edit] AND user=$_SESSION[id]";
 	}
+	
 	else {
 		$query = "INSERT INTO links (title,link,domain,category,user,nsfw)
 			  VALUES ('$input[title]','$input[url]','$domain','$input[cat]',$_SESSION[id],$input[nsfw])";
 	}
+
 	$id = dbQueryId($query);
 	
 	vote($_SESSION[id],$id,'link',1); // Auto-upvote own submissions
@@ -245,10 +268,7 @@ function sendLink($input) { // takes an array of sanitized input to insert into 
 
 function deleteLink($linkid) { // Delete link
 	$linkid = intval($linkid);
-	$owner = dbFirstResult("SELECT user FROM links WHERE id=$linkid");
-	if($_SESSION[id] == $owner) {
-		return(dbQuery("DELETE FROM links WHERE id=$linkid"));
-	}
+	return(dbQuery("DELETE FROM links WHERE id=$linkid AND user=$_SESSION[id]"));
 }
 
 function nsfw($linkid) { // Toggle nsfw status of link
@@ -258,6 +278,7 @@ function nsfw($linkid) { // Toggle nsfw status of link
 	else { $nsfw = 0; }
 	dbQuery("UPDATE links SET nsfw=$nsfw WHERE id=$linkid");
 }
+
 /* --------- Category table functions --------- */
 
 function categoryExists($cat) { // Return true if the given category exists
@@ -275,13 +296,17 @@ function getCategories($ownerid=false) { // Get an array of categories, optional
 function sendComment($input) { // Takes an array of sanitized input. Submits comment to database and returns ID.
 	$input = dbEscapeArray($input);
 	$linkid = intval($_GET[linkid]);
+	
 	if(intval($input[edit]) == 1) { 
 		$owner = dbFirstResult("SELECT userid FROM comments WHERE id=$input[parent]"); 
+		
 		if($owner == $_SESSION[id]) { // Check that the user owns the comment they are editing
-			dbQueryId("UPDATE comments SET text='$input[comment]' WHERE id=$input[parent]");
+			dbQuery("UPDATE comments SET text='$input[comment]' WHERE id=$input[parent]");
 			return($input[parent]);
 		}	
+		else { return false; }
 	}
+	
 	else {
 		if(intval($input[parent] == 0)) { $input[parent] = "NULL"; }
 		$queryid = dbQueryId("INSERT INTO comments (userid,linkid,parent,text) VALUES ($_SESSION[id],$linkid,$input[parent],'$input[comment]')");
@@ -297,17 +322,17 @@ function getComments($linkid,$user=0,$page=1,$limit=25) { // Returns an array of
 	$limit = intval($limit);
 	
 	if($linkid != 0) { $where = "WHERE c.linkid=$linkid"; }
-	
-	elseif($user != 0) { 
-		$where = "WHERE c.userid=$user AND c.deleted!=1 ";
-	        $linktitle = ", l.title AS title, l.category";
-		$linkjoin = "LEFT JOIN links AS l ON l.id=c.linkid";	
+		
+	elseif($user != 0) { // User page comments listing
+		$where = "WHERE c.userid=$user AND c.deleted!=1 "; // No deleted comments!
+		$linktitle = ", l.title AS title, l.category"; 		// Include the link
+		$linkjoin = "LEFT JOIN links AS l ON l.id=c.linkid";	// title and category
 		if($page > 0) { $page--; }
-		$offset=($page*$limit); // Pagination	
+		$offset=($page*$limit); // Pagination doesn't work for our comment tree, so we only use it on the user page
 		$qlimit = "LIMIT $offset,$limit";
 	}
 	
-	if($_SESSION[id] != 0) { // Include the logged in users vote in the query
+	if($_SESSION[id] != 0) { // Include the logged in user's vote in the query
 		$myvote = ", IFNULL(v.vote,0) AS myvote";
 		$myvotejoin = "LEFT JOIN votes AS v ON c.id=v.subjectid AND v.type='comment' AND v.userid=$_SESSION[id]";
 	}
@@ -325,6 +350,8 @@ function getComments($linkid,$user=0,$page=1,$limit=25) { // Returns an array of
 		else { $page = 0; }
 		$totalpages = ceil($totalrows / $limit);
 	}
+	else { $page=NULL; $totalpages = NULL; } // No pagination for comment trees
+		
 	return(array(dbResultArray($query), "page" => $page, "totalpages" => $totalpages));
 }
 
@@ -335,23 +362,23 @@ function rawComment($commentid) { // Returns raw form of comment with given ID (
 
 function deleteComment($commentid) { // Deletes comment with given ID
 	$commentid = intval($commentid);
-	$owner = dbFirstResult("SELECT userid FROM comments WHERE id=$commentid"); 
-	if($owner == $_SESSION[id]) { // Check that the user owns the comment they are editing
-		return(dbQuery("UPDATE comments SET deleted=1 WHERE id=$commentid"));
-	}
+	return(dbQuery("UPDATE comments SET deleted=1 WHERE id=$commentid AND userid=$_SESSION[id]"));
 }
 
 /* --------- Vote table functions --------- */
 
 function getMyPoints($userid) { // Get given user's total points (from their submissions and comments)
 	$query="SELECT (IFNULL(IFNULL(l.links,0)+IFNULL(c.comments,0),0)) AS points 
-		FROM (SELECT users.id AS id, sum(v.vote) as links FROM users 
-	        LEFT JOIN links ON links.user=users.id 
-	        LEFT JOIN votes as v ON v.subjectid=links.id AND v.type='link' GROUP BY id) as l 
-	        JOIN (SELECT users.id AS id, sum(v.vote) as comments FROM users 
-	        LEFT JOIN comments ON comments.userid=users.id 
-	        LEFT JOIN votes as v ON v.subjectid=comments.id AND v.type='comment' GROUP BY id) as c 
-	        ON l.id=c.id WHERE c.id=$userid GROUP BY c.id"; 
+		FROM (
+			SELECT users.id AS id, sum(v.vote) as links FROM users 
+	        	LEFT JOIN links ON links.user=users.id 
+	        	LEFT JOIN votes as v ON v.subjectid=links.id AND v.type='link' GROUP BY id) as l 
+	        	JOIN (
+				SELECT users.id AS id, sum(v.vote) as comments FROM users 
+	        		LEFT JOIN comments ON comments.userid=users.id 
+	        		LEFT JOIN votes as v ON v.subjectid=comments.id AND v.type='comment' GROUP BY id
+			) as c ON l.id=c.id WHERE c.id=$userid GROUP BY c.id
+		"; 
 	return(dbFirstResult($query));
 }
 
@@ -360,7 +387,7 @@ function vote($userid,$subjectid,$type,$vote) { // Enters, removes or edits a vo
 	$userid = intval($userid);
 	$subjectid = intval($subjectid);
 	$vote = intval($vote);
-	//print_r(func_get_args());
+
 	switch($vote) {
 	case 0:
 		// Unset/delete vote
@@ -381,14 +408,13 @@ function vote($userid,$subjectid,$type,$vote) { // Enters, removes or edits a vo
 		
 		break;
 	default: // Any vote other than +1, -1 or 0
-		return("Invalid vote!");
+		return(false);
 		break;
 	}
 
 	// Grab and return the new vote count
 	$result = dbFirstResult("SELECT points FROM totalvotes WHERE subjectid=$subjectid AND type='$type'");
 	if(empty($result)) { $result = 0; }		
-	if($result != 1 && $result != -1) { $p = "points"; }
-	else { $p = "point"; }
-	return("$result $p");
+	$result .= ($result == 1 || $result == -1) ? ' point' : ' points';
+	return("$result");
 }

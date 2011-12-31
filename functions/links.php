@@ -41,48 +41,58 @@ function cleanLink($input) { // Takes an array of link data, returns same but sa
 
 function printLink($link) { // Prints a link
 	$template = file_get_contents("templates/link.html");
-	$nsfw = "";
 	$time = timeSince($link[time]);
+	
 	if($link[nsfw] == 1) { $nsfw = "<strong class=nsfw>:: NSFW ::</strong>"; }
 	else { $nsfw = "<strong class=nsfw style=display:none;>:: NSFW ::</strong>"; }
+	
 	if($link[points] == NULL) { $link[points] = 0; }
-	if($link[points] == 1 || $link[points] == -1) { $p = "point"; }
-	else { $p = "points"; }
-	$points = "$link[points] $p";
+	$link[points] .= ($link[points] == 1 || $link[points] == -1) ? ' point' : ' points';
+
 	$myvote = 0;
 	if($link[myvote]) { $myvote = $link[myvote]; }
+		
 	if($_SESSION[lastvisited] == $link[id]) { $last = "class=lastvisited"; }
+	
 	$arrows = voteArrows($myvote,$link[id]);
+	
 	switch($link[comments]) {
 		case 0:
 			$comments = "<a href=comments.php?linkid=$link[id]>comment</a>";
-		break;
+			break;
 		case 1:
 			$comments = "<a href=comments.php?linkid=$link[id]>1 comment</a>";
-		break;
+			break;
 		default:
 			$comments = "<a href=comments.php?linkid=$link[id]>$link[comments] comments</a>";
 			break;
 	}
 	
 	if($link[category] != "main") { // Only show the category if it isn't 'main'
-	$cat = "to <a class=linkcat href=./?category=$link[category]>$link[category]</a>";
+		$cat = "to <a class=linkcat href=./?category=$link[category]>$link[category]</a>";
 	}
+
+	$domain = "<a class=domain href=./?domain=$link[domain]>$link[domain]</a>";
+		
 	//If we are logged in, show edit/delete/nsfw buttons on own links
 	if($_SESSION[id] == $link[user]) {	
+		
 		if($link[nsfw] == 0) { $nsfwlink = "<a class='nsfw' href=# id=$link[id]>nsfw?</a>"; }
 		else { $nsfwlink = "<a class='nsfw on' href=# id=$link[id]>sfw?</a>"; }
+			
 		$buttons = "$nsfwlink 
 			   <a class=linkedit href=#>edit</a>
-			   <a class=linkdel href=edit.php?id=$link[id]&delete=1>delete</a> <span style=display:none;float:left;><a class='linkdel no' href=#>no</a><a class='linkdel yes' href=# id=$link[id]>yes</a></span>";
+			   <a class=linkdel href=edit.php?id=$link[id]&delete=1>delete</a> 
+			   <span style=display:none;float:left;><a class='linkdel no' href=#>no</a><a class='linkdel yes' href=# id=$link[id]>yes</a></span>";
+
+		// Populate the link edit form
 		$input = array("edit" => $link[id], "title" => $link[title], "cat" => $link[category], "url" => $link[link], "nsfw" => $link[nsfw]);
 		$editform = linkform(array(),$input);
 	}
-	else { $buttons=""; }
 
 	$placeholders = array("TITLE" => $link[title], "URL" => $link[link],
-		         "DOMAIN" => $link[domain], "USER" => $link[username], "USERID" => $link[user],
-			 "POINTS" => $points, "CAT" => $cat,
+		         "DOMAIN" => $domain, "USER" => $link[username], "USERID" => $link[user],
+			 "POINTS" => $link[points], "CAT" => $cat,
 			 "NSFW" => $nsfw, "TIME" => $time, "BUTTONS" => $buttons,
 			 "COMMENTS" => $comments, "ID" => $link[id],
 			 "ARROWS" => $arrows, "EDITFORM" => $editform,

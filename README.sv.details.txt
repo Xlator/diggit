@@ -9,6 +9,7 @@ Funktionalitet:
  * Redigera och radera egna länkar. (kräver att javascript är aktiverat)
  * Kommentera på länkar samt svara på tidigare kommentarer. (trädstruktur)
  * Redigera och radera egna kommentarer. (kräver att javascript är aktiverat)
+ * Användarsida med lista över länkar/kommentarer postade av en användare
  * Sortera länkar efter: flest röster de senaste 48 timmarna (standard) eller tiden länken postades (senast först).
  * Rösta på länkar och kommentarer (upp eller ner). Man kan även ta bort sin röst, precis som på reddit.
  * Den senaste länken man har besökt markeras med en border, som på reddit. (kräver att javascript är aktivt)
@@ -87,8 +88,8 @@ login.php
 
 Här har vi formulär för inloggning och registrering, som genereras från mallarna login.html och register.html, i mappen forms/,
 av funktionerna loginform() och regform() i functions/forms.php. Dessa funktioner tar två arrayer som argument, först en med
-felmeddelanden från eventuella tidigare registrerings-/inloggningsförsök (genereras av funktionerna loginErrors() och registrationErrors()),
-sedan en array med indata från det förra försöket. Om dessa argument inte anges får vi ett blankt formulär.
+felmeddelanden från eventuella tidigare registrerings-/inloggningsförsök (genereras av funktionerna loginErrors() och 
+registrationErrors()), sedan en array med indata från det förra försöket. Om dessa argument inte anges får vi ett blankt formulär.
 
 För att registrera anger man användarnamn, lösenord (två gånger), och epostadress. Krav:
  * Användarnamnet får bestå av 3-16 tecken, endast siffror, bokstäver, bindestreck och understreck. Det måste vara unikt.

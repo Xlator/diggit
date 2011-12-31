@@ -76,10 +76,14 @@ function regform($errors=array(),$input=array()) { // Outputs the registration f
 function commentform($id=0,$hide=0) { // Outputs a comment form for the given comment id, optionally hidden
 	$form = file_get_contents("forms/comment.html");
 	if($_SESSION[id] != 0) { // Make sure we're logged in
-		$form = str_replace("{ID}",$id,$form);
-		$form = str_replace("{LINKID}",$_GET[linkid],$form);
-		if($hide == 1) { $form = str_replace("{HIDE}","style=display:none;",$form); }
-		$form = preg_replace("/\{[A-Z-]+\}/","",$form);
+		if($hide == 1) { $hide = "style=display:none;"; }
+			
+		$placeholders = array("ID" => $id, "LINKID" => $_GET[linkid], "HIDE" => $hide,
+				      "FORMATTING" => file_get_contents("templates/comment-formatting.html"));
+		
+		foreach($placeholders as $p => $value) {
+			$form = str_replace("{".$p."}",$value,$form);
+		}
 		return($form);
 	}
 }

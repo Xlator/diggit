@@ -60,7 +60,7 @@ div.commentform {
 
 form.commentform textarea {
 	color: #999;
-	width:40em;
+	width:45em;
 	height: 5em;
 	border:1px
 	dashed #AAA;
@@ -74,8 +74,9 @@ form.commentform textarea.active {
 input[type=submit] {
 	background: #DDD;
 	border: 1px dotted #000;
+	margin-top: 3px;
 }
-a.reply, a.edit, a.delete {
+a.reply, a.edit, a.delete, a.formathelp {
 	color: #333;
 	font-weight: bold;
 	line-height: 1.4em;
@@ -180,7 +181,13 @@ div.hide {
 
 div.linkedit {
 	display: none;
+	margin-top: 6px;
 }
+
+div.linkedit a {
+	font-weight: bold;
+}
+
 div.arrowup {
 	display:block;
 	width:14px;
@@ -245,4 +252,14 @@ header.userprofile nav {
 header.userprofile nav a { text-decoration: none; font-weight:bold; color: #A00; }
 header.userprofile nav a:hover { border-bottom: 1px dashed #AAA; background: #EEE; }
 
+article.link header span.domain a { color: #666; text-decoration:none; font-weight: normal; }
+article.link header span.domain a:hover { text-decoration:underline; }
 
+div.formatting { display:none; padding: 0.5em 1em; margin-bottom: 1em; }
+div.formatting ul { font-size: 1.8em; line-height: 1.2em; }
+div.formatting ul li { margin-bottom: 0; display: inline; border-left: 1px solid #666; padding-left: 0.5em }
+div.formatting h3 { font-size:1.2em; color: #333; margin-bottom: 2px;}
+input { margin-bottom: 4px; }
+label { line-height: 1.2em;  font-weight: bold; }
+div.submit-cats { margin-bottom: 4px; width: 15em; line-height: 1.3em; }
+section.loginform div.submit-cats a { font-weight: bold; text-decoration:none; color:#08F; }

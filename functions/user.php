@@ -57,12 +57,30 @@ function loginErrors($input) { // Check for errors in the login form
 		if(!validatePassword($input[password],$storedhash)) { $error[password] = "Incorrect password"; }
 	}
 	
-	/*$privkey = recaptchaKey('private'); // Get the API key from the database
-	$result = recaptcha_check_answer($privkey, $_SERVER[REMOTE_ADDR], $_POST[recaptcha_challenge_field], $_POST[recaptcha_response_field]);
-	if(!$result->is_valid) { $error[recaptcha] = $result->error; }
-	
-	//$error[recaptcha] = recaptchaValidate($input[recaptcha_challenge_field],$input[recaptcha_response_field]);
-	*/
 	if(isset($error)) { return($error); }
 	else { return(false); }
 }	
+
+/* --------- User info output functions --------- */
+
+function printUser($user) {
+	$template = file_get_contents("templates/userinfo.html");
+
+	$user[links] .= ($user[links] == 1) ? ' link' : ' links';
+	$user[comments] .= ($user[comments] == 1) ? ' comment' : ' comments';
+	$user[points] .= ($user[points] == 1 || $user[points] == -1) ? ' point' : ' points';
+
+	$placeholders = array(
+				"USERID" => $_GET[id],
+				"USERNAME" => $user[username],
+				"REGTIME" => timeSince($user[registered]),
+				"LINKS" => $user[links],
+				"COMMENTS" => $user[comments],
+				"POINTS" => $user[points]
+			);
+
+	foreach($placeholders as $p => $value) {
+		$template = str_replace("{".$p."}",$value,$template);
+	}
+	print($template);
+}

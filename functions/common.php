@@ -25,19 +25,29 @@ function printHeader() { // Outputs the site header
 	if($points == NULL) { $points = 0; }
 	if($_SESSION[id]==0) { $login = "<a href=login.php class=login>login/register</a>"; 
 				$submit = ""; }
-	else { $login = "<a href=user.php?id=$_SESSION[id] class=login>$_SESSION[username] ($points)</a> <a href=./?logout=1 class=login>logout</a>"; 
+	else { $login = "<a href=user.php?id=$_SESSION[id] class=login>".getUsername($_SESSION[id])." ($points)</a> <a href=./?logout=1 class=login>logout</a>"; 
 		$submit = "<a href=submit.php>submit a link</a>"; }
 			
 	$q = "?";		
 	if($_GET[category] != NULL) {
 		$q = "?category=$_GET[category]&";
 		$cat = "<a class=headercat href=./?category=$_GET[category]>$_GET[category]</a> <strong>::</strong>";
-	}	
+		$title = ":: $_GET[category]";
+	}
+	elseif($_GET[domain] != NULL) {
+		$q = "?domain=$_GET[domain]&";
+		$domain = "<a class=headercat href=./?domain=$_GET[domain]>$_GET[domain]</a> <strong>::</strong>";
+		$title = ":: $_GET[domain]";
+	}
+	elseif(isset($_GET[id])) {
+		$title = ":: ".getUsername($_GET[id]);
+	}
 	
 	$placeholders = array("USERID" => $_SESSION[id], "LOGIN" => $login, "SUBMIT" => $submit, 
 			      "NEW" => " <a href=./$q" . "order=new>what's new?</a> ",
 			      "HOT" => " <a href=./$q" . "order=hot>what's hot?</a> ",
-		      	      "CATEGORY" => $cat);
+			      "TOP" => " <a href=./$q" . "order=top>most popular</a> ",
+		      	      "CATEGORY" => $cat, "DOMAIN" => $domain, "TITLE" => $title);
 
 	foreach($placeholders as $p => $value) {
 		$header = str_replace("{".$p."}",$value,$header);
