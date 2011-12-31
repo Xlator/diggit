@@ -1,0 +1,5 @@
+#featured figure { display: inline; } /* Double margin fix */
+#posts-list footer { left: -190px; } /* Positioning fix */
+
+/* Smaller width for social block so it won't jump to next line */
+#extras .social { width: 165px; }

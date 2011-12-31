@@ -44,6 +44,7 @@ Brister:
  - Ingen integration med sociala media. Jag kunde ha fixat detta, men fick prioritera annat pga tidsbrist. 
  - Ingen funktion för medlemsbilder. Ännu en sak som fick prioriteras bort.
  - CSS:en är extremt rörig och troligtvis onödigt lång. Sidans stil är inkonsekvent på flera ställen.
+ - Sidan är enbart testad med WebKit och Firefox. Inte hunnit testa för IE-kompatibilitet.
 
 Databasdesign
 -------------
