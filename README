@@ -2,14 +2,15 @@
 /* --------- Comment output functions --------- */
 function commentTree($comments,$parent=NULL,$layer=1) :: Builds comment tree, and calls printComment() for each comment in the correct order.
 function printComment($comment,$indent) :: Outputs a comment
-function parseQuote($text) :: Callback function for preg_replace for quotes in comments
-function parseCode($text) :: Callback function for preg_replace for code blocks in comments
 function parseComment($text) :: Parses comment formatting and sanitizes comment string
+function parseQuote($text) :: Callback function for preg_replace for quotes in comments (not working)
+function parseCode($text) :: Callback function for preg_replace for code blocks in comments (not working)
 
 /* --------- Common functions (used throughout the site) --------- */
 function timeSince($mysqltimestamp) :: returns time since given timestamp, rounded to the largest whole unit (e.g 3 hours 12 minutes ~ 3 hours)
 function printHeader() :: Outputs the site header
 function voteArrows($myvote,$subjectid) :: Outputs the appropriate voting arrows depending on the logged in user's vote
+function pagination($page, $totalpages) :: Pagination function, takes page info from getLinks() / getComments()
 
 /* --------- Database connection/query helper functions --------- */
 function dbConn() :: Returns database link
@@ -19,37 +20,42 @@ function dbFirstResult($query) :: Returns first row of query result as indexed a
 function dbFirstResultAssoc($query) :: Returns first row of query result as associative array
 function dbResultArray($query) :: Returns query result as associative array
 function dbResultExists($query) :: Returns true if a result is found, false if it isn't
-function dbEscape($string) :: Returns escaped string to prevent SQL insertion attacks
-function dbEscapeArray($array) :: Returns escaped variable to prevent SQL insertion
+function dbRowCount($query) :: Returns the number of rows in the query result
+function dbEscape($string) :: Returns escaped string to prevent SQL injection attacks
+function dbEscapeArray($array) :: Returns escaped array to prevent SQL injection attacks
 
 /* --------- User table functions --------- */
 function getUsername($id) :: Returns name of user with given id
 function getUserid($username) :: Returns id of user with given name
 function getPassword($username) :: Returns password hash of user with given name
-function userExists($parameter,$value) :: Checks if a user exists, either by email or username
-function registerUser($input) :: Writes user info to database on successful registration 
+function userExists($parameter,$value) :: Checks if a user exists, either by id, email or username
+function registerUser($input) :: Writes user info to database on successful registration, returning the user id
+function login($sessionid) :: Store session ID in user table
+function logout() :: Remove session ID from user table and destroy session
+function checkLogin($userid) :: Check session id against user table, logout if the ID is different
+function getUser($userid=0) :: Returns an array containing user info, comment/link counts and points
 
 /* --------- Link table functions --------- */
 function getLink($id) :: Fetch a single link by id
-function getLinks($page=1,$limit=25,$category=NULL) :: Fetch and return array of links
+function getLinks($page=1,$limit=25,$category=NULL,$user=NULL,$domain=NULL) :: Return array containing array of links, the current page and the total number of pages
 function linkExists($url) :: Return true if the given URL has already been posted
 function linkIdExists($id) :: return true if the link with the given id exists
-function sendLink($input) :: takes an array of sanitized input to insert into the database. on success, returns the id of the submitted link
+function domainExists($domain) :: Return true if there are any links with the given domain
+function sendLink($input) :: takes an array of sanitized input to insert into the database. On success, returns the id of the submitted link
 function deleteLink($linkid) :: Delete link
 function nsfw($linkid) :: Toggle nsfw status of link
 
 /* --------- Category table functions --------- */
 function categoryExists($cat) :: Return true if the given category exists
-function getCategories($ownerid=false) :: Get an array of categories, optionally only those owned by a specific user
+function getCategories($limit=0) :: Get an array of categories, optionally only those owned by a specific user
 
 /* --------- Comment table functions --------- */
 function sendComment($input) :: Takes an array of sanitized input. Submits comment to database and returns ID.
-function getComments($linkid) :: Returns an array of comments to the given link ID
+function getComments($linkid,$user=0,$page=1,$limit=25) :: Returns an array of comments to the given link ID
 function rawComment($commentid) :: Returns raw form of comment with given ID (for comment editing)
 function deleteComment($commentid) :: Deletes comment with given ID
 
 /* --------- Vote table functions --------- */
-function getMyVote($userid,$subjectid,$type) :: Return given user's vote for given link/comment (or 0 if they haven't voted)
 function getMyPoints($userid) :: Get given user's total points (from their submissions and comments)
 function vote($userid,$subjectid,$type,$vote) :: Enters, removes or edits a vote from user for subject, returns new vote count.
 
@@ -72,3 +78,6 @@ function validatePassword($password,$storedhash) :: Check an entered password ag
 /* --------- Validation functions --------- */
 function registrationErrors($input) :: Validate registration data, return array of errors (if any), else return false
 function loginErrors($input) :: Check for errors in the login form
+
+/* --------- User info output functions --------- */
+function printUser($user) :: Output user information

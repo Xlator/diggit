@@ -63,7 +63,7 @@ function loginErrors($input) { // Check for errors in the login form
 
 /* --------- User info output functions --------- */
 
-function printUser($user) {
+function printUser($user) { // Output user information
 	$template = file_get_contents("templates/userinfo.html");
 
 	$user[links] .= ($user[links] == 1) ? ' link' : ' links';

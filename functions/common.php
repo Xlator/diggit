@@ -83,7 +83,7 @@ function voteArrows($myvote,$subjectid) { // Outputs the appropriate voting arro
 	return($arrows);
 }	
 
-function pagination($page, $totalpages) {
+function pagination($page, $totalpages) { // Pagination function, takes page info from getLinks() / getComments()
 	if(intval($page) == 0) { return(false); }
 	$request = parse_url($_SERVER[REQUEST_URI]);
 	if(!isset($request[query])) { $q = "?page="; }
