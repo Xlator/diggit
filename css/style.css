@@ -90,6 +90,8 @@ a.yes a.no {
 div.linklist {
 	margin-right: 45%; 
 	margin-bottom: 10px;
+	display:inline-block;
+	float:left;
 }
 
 article.link { 
@@ -263,3 +265,6 @@ input { margin-bottom: 4px; }
 label { line-height: 1.2em;  font-weight: bold; }
 div.submit-cats { margin-bottom: 4px; width: 15em; line-height: 1.3em; }
 section.loginform div.submit-cats a { font-weight: bold; text-decoration:none; color:#08F; }
+div.activeusers { display: inline-block; vertical-align: top; margin-left: 2em; border: 1px dashed #999; padding-left: 1em; padding-top: 5px; color: #666; margin-bottom: 10em; }
+div.activeusers a { color: #08F; font-weight: bold; text-decoration: none; }
+div.activeusers h4 { margin-bottom: 2px; }

@@ -20,8 +20,14 @@ function timeSince($mysqltimestamp) { // returns time since given timestamp, rou
 }
 
 function printHeader() { // Outputs the site header
+	$_SESSION[id] = intval($_SESSION[id]);
 	$header = file_get_contents("templates/header.html");
 	$points = getMyPoints($_SESSION[id]);
+	$cats = getCategories(5);
+	$categories = " <strong style=margin-left:2em;> :: top categories :: </strong>";
+	foreach($cats as $c) {
+		$categories .= "<a href=./?category=$c[name]>$c[name]</a> ";
+	}
 	if($points == NULL) { $points = 0; }
 	if($_SESSION[id]==0) { $login = "<a href=login.php class=login>login/register</a>"; 
 				$submit = ""; }
@@ -47,7 +53,8 @@ function printHeader() { // Outputs the site header
 			      "NEW" => " <a href=./$q" . "order=new>what's new?</a> ",
 			      "HOT" => " <a href=./$q" . "order=hot>what's hot?</a> ",
 			      "TOP" => " <a href=./$q" . "order=top>most popular</a> ",
-		      	      "CATEGORY" => $cat, "DOMAIN" => $domain, "TITLE" => $title);
+			      "CATEGORY" => $cat, "DOMAIN" => $domain, "TITLE" => $title,
+		      	      "CATS" => $categories);
 
 	foreach($placeholders as $p => $value) {
 		$header = str_replace("{".$p."}",$value,$header);
@@ -56,6 +63,7 @@ function printHeader() { // Outputs the site header
 }
 
 function voteArrows($myvote,$subjectid) { // Outputs the appropriate voting arrows depending on the logged in user's vote
+	$_SESSION[id] = intval($_SESSION[id]);
 	$arrows = "<div class='vote'>\n";
 	if($_SESSION[id] != 0) { 
 		if($myvote == 0) {	

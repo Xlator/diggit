@@ -91,7 +91,7 @@ function getPassword($username) { // Returns password hash of user with given na
 	return(dbFirstResult("SELECT password FROM users WHERE username='$username'"));
 }
 
-function userExists($parameter,$value) { // Checks if a user exists, either by email or username
+function userExists($parameter,$value) { // Checks if a user exists, either by id, email or username
 	$value = dbEscape($value);
 	return(dbResultExists("SELECT id FROM users WHERE $parameter='$value'"));
 }
@@ -104,11 +104,43 @@ function registerUser($input) { // Writes user info to database on successful re
 	return($insert);
 }
 
-function getUser($userid) { // Returns an array containing user info, comment/link counts and points
+function login($sessionid) { // Store session ID in user table
+	$sessionid = dbEscape($sessionid);
+	$_SESSION[id] = intval($_SESSION[id]);
+	if(dbQuery("UPDATE users SET sessionid='$sessionid' WHERE id=$_SESSION[id]")) { return true; }
+}
+
+function logout() { // Remove session ID from user table and destroy session
+	$_SESSION[id] = intval($_SESSION[id]);	
+	if(userExists("id",$_SESSION[id])) { // Make sure the user id exists
+		session_regenerate_id(); 
+		session_destroy(); 
+		return false; 
+	}
+
+	if(dbQuery("UPDATE users SET sessionid='' WHERE id=$_SESSION[id]")) {
+		session_regenerate_id();
+		session_destroy();
+		return true;
+	}
+}
+
+function checkLogin($userid) { // Check session id against user table, logout if the ID is different
 	$userid = intval($userid);
-	if($userid == 0) { return(false); }
+	if($userid != 0) {
+		if(dbResultExists("SELECT id FROM users WHERE id=$userid AND sessionid='".session_id()."'")) {
+			return true;
+		}
+	logout();
+	}
+	return false;
+}
+
+function getUser($userid=0) { // Returns an array containing user info, comment/link counts and points
+	$userid = intval($userid);
+	if($userid != 0) { $where = "WHERE users.id=$userid"; }
 	$query = "
-		SELECT username, IFNULL(c.count,0) AS comments, IFNULL(l.count,0) AS links, p.points, registered FROM users 
+		SELECT users.id, username, IFNULL(c.count,0) AS comments, IFNULL(l.count,0) AS links, p.points, registered FROM users 
 		LEFT JOIN (
 			SELECT userid, COUNT(*) AS count from comments WHERE deleted!=1 GROUP BY userid
 		) 
@@ -129,7 +161,8 @@ function getUser($userid) { // Returns an array containing user info, comment/li
 			) 
 			as c ON l.id=c.id
 		) 
-		AS p ON p.id=users.id WHERE users.id=$userid";
+		AS p ON p.id=users.id $where ORDER BY links DESC, comments DESC LIMIT 5";
+	if($userid == 0) { return(dbResultArray($query)); }
 	return(dbFirstResultAssoc($query));
 }
 
@@ -137,6 +170,7 @@ function getUser($userid) { // Returns an array containing user info, comment/li
 /* --------- Link table functions --------- */
 
 function getLink($id) { // Fetch a single link by id
+	$_SESSION[id] = intval($_SESSION[id]);
 	if($_SESSION[id] != 0) { // If we're logged in, include our vote in the query
 		$myvote = "IFNULL(v.vote,0) AS myvote,";
 		$myvotejoin = "LEFT JOIN votes AS v ON l.id=v.subjectid AND v.type='link' AND v.userid=$_SESSION[id]";
@@ -158,6 +192,7 @@ function getLinks($page=1,$limit=25,$category=NULL,$user=NULL,$domain=NULL) { //
 	$user = intval($user);
 	$category = dbEscape($category);
 	$domain = dbEscape($domain);
+	$_SESSION[id] = intval($_SESSION[id]);
 
 	if(!categoryExists($category)) { $where = ""; }
 	else { $where = "WHERE category='$category'"; }
@@ -230,7 +265,7 @@ function domainExists($domain) { // Return true if there are any links with the 
 
 function sendLink($input) { // takes an array of sanitized input to insert into the database. On success, returns the id of the submitted link
 	$input = dbEscapeArray($input);
-	
+	$_SESSION[id] = intval($_SESSION[id]);	
 	if(!isset($input[nsfw])) { $input[nsfw] = 0; }
 	elseif($input[nsfw] == "on") { $input[nsfw] = 1; }	
 		
@@ -268,6 +303,7 @@ function sendLink($input) { // takes an array of sanitized input to insert into 
 
 function deleteLink($linkid) { // Delete link
 	$linkid = intval($linkid);
+	$_SESSION[id] = intval($_SESSION[id]);	
 	return(dbQuery("DELETE FROM links WHERE id=$linkid AND user=$_SESSION[id]"));
 }
 
@@ -286,9 +322,14 @@ function categoryExists($cat) { // Return true if the given category exists
 	return(dbResultExists("SELECT * FROM categories WHERE name='$cat'"));
 }
 
-function getCategories($ownerid=false) { // Get an array of categories, optionally only those owned by a specific user
-	$ownerid = intval($ownerid);
-	return(dbResultArray("SELECT * FROM categories" . ($ownerid? ' WHERE owner=' . $ownerid : '')));
+function getCategories($limit=0) { // Get an array of categories, optionally only those owned by a specific user
+	$limit = intval($limit);
+	if($limit != 0) { $limit = "LIMIT $limit"; }
+	else { $limit = ""; }
+	$query = "SELECT c.*,IFNULL(l.count,0) AS count FROM categories AS c LEFT JOIN (
+			SELECT category, COUNT(*) AS count FROM links GROUP BY category
+		  ) AS l ON l.category=c.name WHERE c.name != 'main' AND count > 0 ORDER BY count DESC $limit";
+	return(dbResultArray($query));
 }
 
 /* --------- Comment table functions --------- */
@@ -296,7 +337,7 @@ function getCategories($ownerid=false) { // Get an array of categories, optional
 function sendComment($input) { // Takes an array of sanitized input. Submits comment to database and returns ID.
 	$input = dbEscapeArray($input);
 	$linkid = intval($_GET[linkid]);
-	
+	$_SESSION[id] = intval($_SESSION[id]);	
 	if(intval($input[edit]) == 1) { 
 		$owner = dbFirstResult("SELECT userid FROM comments WHERE id=$input[parent]"); 
 		
@@ -321,6 +362,7 @@ function getComments($linkid,$user=0,$page=1,$limit=25) { // Returns an array of
 	$page = intval($page);
 	$limit = intval($limit);
 	
+	$_SESSION[id] = intval($_SESSION[id]);	
 	if($linkid != 0) { $where = "WHERE c.linkid=$linkid"; }
 		
 	elseif($user != 0) { // User page comments listing

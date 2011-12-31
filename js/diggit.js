@@ -200,5 +200,10 @@ $(document).ready (function () {
 		else { $(this).text("formatting help"); }	
 		return false; 
 	});
+	
+	$("label[for=nsfw]").click(function() {
+		if($(this).prev("input").is(":checked")) { $(this).prev("input").removeAttr("checked"); }
+		else { $(this).prev("input").attr("checked","checked"); }
+	});
 
 });

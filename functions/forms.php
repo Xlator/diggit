@@ -75,7 +75,7 @@ function regform($errors=array(),$input=array()) { // Outputs the registration f
 
 function commentform($id=0,$hide=0) { // Outputs a comment form for the given comment id, optionally hidden
 	$form = file_get_contents("forms/comment.html");
-	if($_SESSION[id] != 0) { // Make sure we're logged in
+	if(intval($_SESSION[id]) != 0) { // Make sure we're logged in
 		if($hide == 1) { $hide = "style=display:none;"; }
 			
 		$placeholders = array("ID" => $id, "LINKID" => $_GET[linkid], "HIDE" => $hide,

@@ -12,6 +12,8 @@ require("functions/comments.php");
 require("functions/user.php");
 require("functions/forms.php");
 
+checkLogin($_SESSION[id]);
+
 printHeader();
 $user = getUser($_GET[id]);
 printUser($user);

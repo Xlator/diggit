@@ -7,6 +7,7 @@ require("functions/db.php");
 require("functions/links.php");
 require("functions/forms.php");
 require("functions/common.php");
+checkLogin($_SESSION[id]);
 printHeader();
 
 if($_POST) {

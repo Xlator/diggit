@@ -13,6 +13,7 @@ require("functions/forms.php");
 $linkid = intval($_GET[linkid]);
 if(!linkIdExists($linkid)) { header("Location: ./"); } // If the link id is invalid, return to index
 
+checkLogin($_SESSION[id]);
 if($_POST) { // Post a comment
 	$commentid = sendComment($_POST);
 	header("Location: comments.php?linkid=$_GET[linkid]#$commentid");

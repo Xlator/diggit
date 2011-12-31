@@ -9,10 +9,11 @@ Funktionalitet:
  * Redigera och radera egna länkar. (kräver att javascript är aktiverat)
  * Kommentera på länkar samt svara på tidigare kommentarer. (trädstruktur)
  * Redigera och radera egna kommentarer. (kräver att javascript är aktiverat)
- * Användarsida med lista över länkar/kommentarer postade av en användare
+ * Användarsida med lista över länkar/kommentarer postade av en användare.
  * Sortera länkar efter: flest röster de senaste 48 timmarna (standard) eller tiden länken postades (senast först).
  * Rösta på länkar och kommentarer (upp eller ner). Man kan även ta bort sin röst, precis som på reddit.
  * Den senaste länken man har besökt markeras med en border, som på reddit. (kräver att javascript är aktivt)
+ * Lista över mest aktiva användare på förstasidan.
 
 Styrkor:
  * Presentation (HTML/CSS) och funktion (PHP) är väl åtskiljda mha mallar för länklistan, kommentarsträdet och alla formulär
@@ -25,6 +26,9 @@ Styrkor:
    (dvs. länkar, kommentarer, användare osv). Vidare finns en fil med funktioner som används på flera ställen, common.php
  * All indata som används för databasfrågor säkras med hjälpfunktioner baserade på mysqli_real_escape_string() för att förhindra
    injektionsattacker.
+ * Sessions-id:t kollas mot användartabellen varje gång vi gör tillägg/ändringar i databasen (postar länkar, kommenterar, redigerar,
+   raderar). Om det inte stämmer loggas användaren ut och ett nytt sessions-id skapas. Detta ska försvåra kapning av konton genom
+   ändring av sessionsvariabler på klientsidan.
 
 Brister:
  - Mycket av sidans funktionalitet kräver att javascript är aktiverat. Det enda man i dagsläget kan göra utan javascript är att
@@ -33,8 +37,13 @@ Brister:
  - Eftersom vi bygger kommentarsträdet med en rekursiv funktion så kan vi inte paginera med en enkel LIMIT i SELECT-frågan som för
    länkar, då detta skulle leda till kommentarer som försvinner eller blir "föräldralösa" på sin sida. Eftersom vi hämtar alla
    kommentarer med en SELECT kan detta leda till tung belastning för servern om vi har väldigt många kommentarer att loopa över,
-   filtrera och formattera.
- - 
+   filtrera och formattera. Pagination funkar dock i kommentarslistan på användarsidan, då det bara är en rak lista och inget träd.
+ - Det går inte att ändra lösenord.
+ - Mailadressen används inte till något.
+ - Det går inte att redigera eller radera kategorier, bara lägga till nya.
+ - Ingen integration med sociala media. Jag kunde ha fixat detta, men fick prioritera annat pga tidsbrist. 
+ - Ingen funktion för medlemsbilder. Ännu en sak som fick prioriteras bort.
+ - CSS:en är extremt rörig och troligtvis onödigt lång. Sidans stil är inkonsekvent på flera ställen.
 
 Databasdesign
 -------------
@@ -62,26 +71,26 @@ Vi har fem tabeller:
    Innehåller namn på kategorier. Innehåller även ägare och beskrivning, men dessa används inte än. Kategorins namn är en unik
    key (istället för ett id-fält, eftersom kategorins fulla namn sparas i tabellen links).
 
-
 ... och tre views:
  * commentcounts (Antalet kommentarer för varje länk)
  * recentvotes (Summan av röster för varje länk och kommentar under de senaste 48 timmarna)
  * totalvotes (Summan av alla röster för varje kommentar/länk)
  
 
-
 Genomgång av de olika sidorna
 -----------------------------
 
-Längst upp på varje sida har vi vårt sidhuvud, med länkar för att ändra sorteringen av länkarna på förstasidan till vänster, och
-länk för att logga in eller registrera sig längst till höger. När vi är inloggade kommer vi ha en länk för att skicka in en ny
-länk, och inloggningslänken ersätts av en utloggningslänk och vårt användarnamn med vår "karma" inom parentes (som reddit, fast 
-här räknas även röster på dina kommentarer). Poängen hämtas av funktionen getMyPoints() i functions/db.php.
+Längst upp på varje sida har vi vårt sidhuvud, med länkar för att ändra sorteringen av länkarna på förstasidan till vänster,
+länkar till de populäraste kategorierna, och länk för att logga in eller registrera sig längst till höger. När vi är 
+inloggade kommer vi ha en länk för att skicka in en ny länk, och inloggningslänken ersätts av en utloggningslänk och vårt 
+användarnamn med vår "karma" inom parentes (som reddit, fast här räknas även röster på dina kommentarer). Poängen hämtas 
+av funktionen getMyPoints() i functions/db.php. Klickar vi på användarnamnet kommer vi till användarsidan, users.php, där 
+våra länkar och kommentarer listas.
 
 Är vi inne i en kategori (antingen genom att ha klickat på kategorinamnet under en länk eller genom att vara i comments.php)
 så visas kategorins namn som en länk till kategorins förstasida, och sorteringslänkarna ändras till att avse våran kategori.
-Funktionaliteten är jämförbar med en subreddit. Om vi klickar på "diggit" längst till vänster så återgår vi till huvudsidan,
-där länkarna från alla kategorier listas.
+Har vi klickat på ett domännamn bredvid en länk ser vi detta istället för kategorin. Funktionaliteten är jämförbar med en 
+subreddit. Om vi klickar på "diggit" längst till vänster så återgår vi till huvudsidan, där länkarna från alla kategorier listas.
 
 login.php
 ---------
@@ -108,8 +117,9 @@ blir det som skickas till databasen.
 att hitta alla lösenorden)
 
 Vår hash-saltkombo skickas nu till databasen tillsammas med resten av datan. Funktionen registerUser() i functions/db.php returnerar
-sedan ett id som vi sparar i $_SESSION[id], medan vårt användarnamn sparas i $_SESSION[username]. Voilá! Registrerad och inloggad.
-Nu skickas vi tillbaka till index.php och kan se vårt användarnamn längst upp till höger, tillsammans med en länk för att logga ut.
+sedan vårt användar-id som vi sparar i $_SESSION[id]. Sedan sparar funktionen login() vårt sessions-id i användartabellen. 
+Voilá! Registrerad och inloggad. Nu skickas vi tillbaka till index.php och kan se vårt användarnamn längst upp till höger, tillsammans 
+med en länk för att logga ut.
 
 Inloggningen funkar som vilken som helst (ange giltigt användarnamn och rätt lösenord, annars får du felmeddelanden). loginErrors() i
 functions/user.php kollar att användarnamnet finns i databasen, sen hämtar den saltet/hashen från användartabellen i databasen. 
@@ -118,7 +128,7 @@ som vid registreringen, och jämför resultatet med den lagrade hashen. Skiljer 
 i formulärsmallen precis som vid registrering), annars godkänns inloggningen. 
 
 Vid godkänd inloggning hämtas användarens id (getUserid($username) i functions/db.php) och sparas i sessionsvariabeln tillsammans med
-användarnamnet, precis som förut. Inloggning klar och vi skickas tillbaka till förstasidan.
+användarnamnet, precis som förut. Funktionen login() sparar sessions-id i databasen. Inloggning klar och vi skickas tillbaka till förstasidan.
 
 submit.php
 ----------
@@ -136,7 +146,7 @@ För att posta en länk anger vi titel, URL, kategori och om länken är NSFW el
 Anger vi en kategori som inte finns så skapas den samtidigt som resten av datan skrivs in i databasen. Har man javascript på och klickar på en 
 kategori i listan under fältet så matas den kategorin man klickar på in.
 
-cleanLink() i functions/links.php filtrerar bort skadliga specialtecken från och ersätter eventuella måsvingar i indatan ({ }) med HTML entities, 
+cleanLink() i functions/links.php filtrerar bort skadliga specialtecken och ersätter eventuella måsvingar i indatan ({ }) med HTML entities, 
 eftersom våra mallar använder måsvingar för att markera en {PLACEHOLDER} och vi vill undvika konstigheter när länken ska visas på sidan.
 
 Den filtrerade indatan kollas sedan efter fel av funktionen linkErrors() i functions/links.php. Upptäcks några fel returneras en array med
@@ -152,20 +162,21 @@ comments.php?linkid=$id. Men låt oss först kika på...
 index.php
 ---------
 
-En lista med länkar, som kan sorteras på två olika sätt: "what's hot" och "what's new". Precis som reddit. "Hot" är det som fått mest röster de
-senaste två dygnen, medan "new" helt enkelt är det som är nyast.
+En lista med länkar, som kan sorteras på två olika sätt: "what's hot", "what's new" och "most popular". Ungefär som reddit. "Hot" är det som fått mest röster de
+senaste två dygnen, medan "new" helt enkelt är det som är nyast. "Popular" är de länkar som fått flest röster genom tiderna.
 
 Om vi klickar på en länk och har javascript aktiverat (varesig vi är inloggade eller ej) så sparas länkens id i en sessionsvariabel via ett anrop
 till ajax/lastvisited.php. På så vis kan vi, med hjälp av en CSS-klass, markera den senast besökta länken med en border, precis som på reddit.
 
 Återigen använder vi en mall med {PLACEHOLDERS}, den här gången är det från templates/link.html. Funktionen getLinks() i functions/db.php hämtar
-länkarna från databasen och returnerar en array med varje länks data, plus annan användbar information som användarnamn, antalet röster, inloggad 
-användares röst på den länken (1,-1,0), och antalet kommentarer. En foreach-loop och funktionen printLink() matar sedan in vår data i mallen och 
-skriver ut den. 
+länkarna från databasen och returnerar en array - som innehåller en array med varje länks data, plus annan användbar information som användarnamn, 
+antalet röster, inloggad användares röst på den länken (1,-1,0), och antalet kommentarer - plus vilken sida vi är på och det totala antalet sidor, 
+för paginationens skull. En foreach-loop och funktionen printLink() matar sedan in vår data i mallen och skriver ut den. 
 
-getLinks() har några argument, som dock är valfria. Först har vi sidnummer (1 är default), sedan mängden rader per "sida" (default 25) och sist 
-kategori (default NULL). Med dessa argument kan vi, med en query string ?page=(int) hämta en viss del av inläggen. Om vi angav page=2 så skulle 
-vi få tillbaka länkar 26-50, eftersom det är 25 per sida, och vi bad om sida 2. Voilá, pagination.
+getLinks() har några argument, som dock är valfria. Först har vi sidnummer (som hämtas från querystring, med 1 som default), sedan mängden rader 
+per "sida" (default 25, ställs in med konstanten LINKS_PER_PAGE i config.php (för närvarande står den på 10)) och sist kategori (default NULL). 
+Med dessa argument kan vi, med en query string ?page=(int) hämta en viss del av inläggen. Om vi angav page=2 så skulle vi få tillbaka länkar 26-50, 
+eftersom det är 25 per sida, och vi bad om sida 2. Voilá, pagination.
 
 Om vi är inloggade skapar funktionen voteArrows() två pilar där rätt pil är markerad utifrån den inloggade användarens röst 
 (upp för 1, ner för -1 och ingen alls för 0). Pilarna matas sedan in i mallen där {ARROWS} finns.
@@ -199,6 +210,9 @@ Tidsangivelsen på länken kommer från funktionen timeSince() i functions/commo
 mellan tiden då sidan laddades och tiden som anges som argument, en timestamp i det format MySQL använder, som vi hämtar från resultatet av 
 getLinks() ovan. Är tidsskillnaden 0 returnerar vi istället strängen "Just now".
 
+Längst ner på sidan visas en lista över de fem mest aktiva användarna. Denna hämtas av funktionen getUser() utan argument, och inkluderar mängder länkar
+och kommentarer användaren skrivit, och hur många poäng de har.
+
 comments.php
 ------------
 
@@ -221,7 +235,7 @@ array behandlas sedan av den rekursiva funktionen commentTree() i functions/comm
 förälderkommentar, dvs de kommentarer som är direkt till länken. För varje träff så skriver den ut den relevanta kommentaren (printComment() 
 i functions/comments.php som använder mallen templates/comment.html), sedan loopar den över arrayen igen, denna gång på jakt efter kommentarer som 
 har den förra som förälder. Sen skriver den ut dessa kommentarer var för sig och loopar vidare på nästa nivå. Detta fortsätter tills alla kommentarer 
-är utskrivna.
+är utskrivna. 
 
 Den kommentarstext vi hämtar från databasen är rå, dvs att vi inte sparar några taggar eller dylikt för formattering. Istället läggs dessa på i efterhand
 med funktionen parseComment() i functions/comments.php, som filtrerar specialtecken med FILTER_SANITIZE_SPECIAL_CHARS, och använder regex för att söka 
@@ -247,3 +261,15 @@ slipper ladda om sidan.
 
 Att rösta på kommentarer funkar på precis samma sätt som att rösta på länkar.
 
+user.php
+--------
+
+Användarsidan kan vi komma till genom att klicka på vårt egna användarnamn längst upp till höger, eller på ett användarnamn under en länk eller på en kommentar.
+Funktionen getUser() med användarens ID (från query string) som argument hämtar användarnamn, registreringsdatum och antal länkar, kommentarer och poäng som
+användaren har från databasen. Denna information skrivs ut av funktionen printUser() med mallen templates/userinfo.html. Kommentarer och länkar skrivs ut som
+länkar vi kan klicka på för att se användarens kommentarer/länkar, som hämtas med getLinks()/getComments(), som, när ett användar-id är angivet inkluderar en 
+WHERE-klausul i SELECT-frågan. Kommentarslistan är en rak lista över kommentarer användaren har gjort. Man kan inte svara på eller redigera kommentarer härifrån,
+detta för att undvika att man missar poängen med en kommentar när den ses utanför sitt sammanhang. Istället för användarnamnet visas länkens titel som en länk
+till kommentarssidan, plus en länk till kategorin länken ligger i.
+
+Länkar kan redigeras, raderas och NSFW:as precis som vanligt.

@@ -75,7 +75,7 @@ function printLink($link) { // Prints a link
 	$domain = "<a class=domain href=./?domain=$link[domain]>$link[domain]</a>";
 		
 	//If we are logged in, show edit/delete/nsfw buttons on own links
-	if($_SESSION[id] == $link[user]) {	
+	if(intval($_SESSION[id]) == $link[user]) {	
 		
 		if($link[nsfw] == 0) { $nsfwlink = "<a class='nsfw' href=# id=$link[id]>nsfw?</a>"; }
 		else { $nsfwlink = "<a class='nsfw on' href=# id=$link[id]>sfw?</a>"; }

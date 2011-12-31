@@ -47,9 +47,9 @@ function printComment($comment,$indent) { // Outputs a comment
 	
 	if(!isset($_GET[id])) {	
 	$reply = commentform($comment[id],1); // 1 to hide the form by default
-		if($_SESSION[id] != 0 && $comment[deleted] == 0) { $replylink = "<a class=reply id=$comment[id] href=#>reply</a>"; }
+		if(intval($_SESSION[id]) != 0 && $comment[deleted] == 0) { $replylink = "<a class=reply id=$comment[id] href=#>reply</a>"; }
 			
-		if($_SESSION[id] == $comment[userid] && $comment[deleted] == 0) { 
+		if(intval($_SESSION[id]) == $comment[userid] && $comment[deleted] == 0) { 
 			$edit = "<a class=edit id=$comment[id] href=#>edit</a>"; 
 			$delete = "<a class=delete href=#>delete</a> 
 				<span style=display:none;><a class='delete  yes' href=# id=$comment[id]>yes</a> / 

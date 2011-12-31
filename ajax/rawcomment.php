@@ -3,6 +3,6 @@ require("../config.php");
 require("../functions/db.php");
 session_start();
 
-if($_SESSION[id] == 0) { die(); }
-print rawComment($_GET[id]);
+if(intval($_SESSION[id]) == 0) { die(); }
+print rawComment(intval($_GET[id]));
 ?>

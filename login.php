@@ -15,6 +15,8 @@ if($_POST[action] == "register") { // Register
 		$userid = registerUser($_POST);
 		// Log in and redirect to index after registering
 		$_SESSION[id] = $userid;
+		session_regenerate_id();
+		login(session_id());
 		header("Location: ./");
 	}
 	$errors = registrationErrors($_POST);
@@ -25,6 +27,8 @@ if($_POST[action] == "login") { // Login
 	if(!loginErrors($_POST)) {
 		$userid = getUserid($_POST[username]);
 		$_SESSION[id] = $userid;
+		session_regenerate_id();
+		login(session_id());
 		header("Location: ./");
 	}
 	$errors = loginErrors($_POST);
