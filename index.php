@@ -38,8 +38,8 @@ print "<div class=linklist><ul>";
 	}
 
 
-print "</ul></div>";
 print($pagination);
+print "</ul></div>";
 
 // List the top 5 users
 print "<div class=activeusers>";

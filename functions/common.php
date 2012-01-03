@@ -26,35 +26,46 @@ function printHeader() { // Outputs the site header
 	$cats = getCategories(5);
 	$categories = " <strong style=margin-left:2em;> :: top categories :: </strong>";
 	foreach($cats as $c) {
-		$categories .= "<a href=./?category=$c[name]>$c[name]</a> ";
+		$categories .= buildLink("?category=$c[name]",$c[name])." "; 
 	}
-	if($points == NULL) { $points = 0; }
-	if($_SESSION[id]==0) { $login = "<a href=login.php class=login>login/register</a>"; 
-				$submit = ""; }
-	else { $login = "<a href=user.php?id=$_SESSION[id] class=login>".getUsername($_SESSION[id])." ($points)</a> <a href=./?logout=1 class=login>logout</a>"; 
-		$submit = "<a href=submit.php>submit a link</a>"; }
+
+	if($_SESSION[id]==0) { $login = buildLink("login.php","log in/register","login"); }
+	else { 
+		$login = buildLink("?logout=1","log out","login") . "::" .  
+			 buildLink("user.php?id=$_SESSION[id]",getUsername($_SESSION[id])." ($points)","login"); 
+		$submit = buildLink("submit.php","submit a link"); 
+	}
 			
-	$q = "?";		
-	if($_GET[category] != NULL) {
-		$q = "?category=$_GET[category]&";
-		$cat = "<a class=headercat href=./?category=$_GET[category]>$_GET[category]</a> <strong>::</strong>";
-		$title = ":: $_GET[category]";
+	if($_GET[category] != NULL) { // Are we in a category?
+		$q[category] = $_GET[category];
+		$title = "$_GET[category]";
 	}
-	elseif($_GET[domain] != NULL) {
-		$q = "?domain=$_GET[domain]&";
-		$domain = "<a class=headercat href=./?domain=$_GET[domain]>$_GET[domain]</a> <strong>::</strong>";
-		$title = ":: $_GET[domain]";
+	elseif($_GET[domain] != NULL) { // Are we in a domain?
+		$q[domain] = $_GET[domain];
+		$title = "$_GET[domain]";
 	}
-	elseif(isset($_GET[id])) {
-		$title = ":: ".getUsername($_GET[id]);
+	elseif(isset($_GET[id])) { // Are we on a user page?
+		$q[id] = $_GET[id];
+		$title = getUsername($_GET[id]);
+		$titleurl = "users.php";
 	}
 	
+	$sitetitlelink = buildLink(""," :: " . SITE_TITLE . " ::","diggit")."";
+	if(!empty($q)) { // Create the page title link 
+		$qs = buildQueryString($q);
+		$titlelink = buildLink($titleurl."?".$qs,$title,"headercat")."::";
+		$title = ":: $title";
+		unset($q[id]);	
+	}
+	
+	$new = buildLink($index."?".buildQueryString($q,"order=new"),"what's new?");
+	$hot = buildLink($index."?".buildQueryString($q,"order=hot"),"what's hot?");
+	$top = buildLink($index."?".buildQueryString($q,"order=top"),"most popular");
+
 	$placeholders = array("USERID" => $_SESSION[id], "LOGIN" => $login, "SUBMIT" => $submit, 
-			      "NEW" => " <a href=./$q" . "order=new>what's new?</a> ",
-			      "HOT" => " <a href=./$q" . "order=hot>what's hot?</a> ",
-			      "TOP" => " <a href=./$q" . "order=top>most popular</a> ",
-			      "CATEGORY" => $cat, "DOMAIN" => $domain, "TITLE" => $title,
-		      	      "CATS" => $categories);
+			      "NEW" => $new, "HOT" => $hot, "TOP" => $top,
+			      "CATEGORY" => $cat, "DOMAIN" => $domain, "PAGE_TITLE" => $title, "TITLE_LINK" => $titlelink,
+			      "SITE_TITLE" => SITE_TITLE, "SITE_TITLE_LINK" => $sitetitlelink, "CATS" => $categories, "PREFIX" => PREFIX);
 
 	foreach($placeholders as $p => $value) {
 		$header = str_replace("{".$p."}",$value,$header);
@@ -85,18 +96,41 @@ function voteArrows($myvote,$subjectid) { // Outputs the appropriate voting arro
 
 function pagination($page, $totalpages) { // Pagination function, takes page info from getLinks() / getComments()
 	if(intval($page) == 0) { return(false); }
-	$request = parse_url($_SERVER[REQUEST_URI]);
-	if(!isset($request[query])) { $q = "?page="; }
-	else { // Make sure the query string is properly formed
-		$request[query] = preg_replace("/(page=[\d]+)/","",$request[query]); // Remove "page" from query string
-		$request[query] = preg_replace("/^(&)/","",$request[query]); // Remove any & at the beginning of the query string
-		$request[query] = preg_replace("/(&(?=&))/","",$request[query]); // Remove duplicate &s
-		$request[query] = preg_replace("/(&)$/","",$request[query]); // Remove any & at the end of the query string
-		$q = "?$request[query]&page="; 
+	parse_str($_SERVER[QUERY_STRING],$query);
+	
+	if(preg_match("#^".PREFIX."([a-z]+\.php)$#",$_SERVER[SCRIPT_NAME],$match)) {
+		$filename = $match[1];
 	}
-	$out .= "<span class=pagination>Page $page | ";
-	if($page > 1) { $out .= sprintf("<a href=$q%s>Previous page</a> ",$page - 1); }
-	if($page < $totalpages) { $out .= sprintf("<a href=$q%s>Next page</a>",$page+1); }
-	$out .= "</span>";	
-	return($out);
+
+	if($page > 1) { 
+		$query[page] = $page - 1;
+		$prevpage = buildLink($filename."?".buildQueryString($query),"Previous page"). "| ";
+	}
+	if($page < $totalpages) { 
+		$query[page] = $page + 1;
+		$nextpage = " | " . buildLink($filename."?".buildQueryString($query),"Next page");
+	}
+	return("<span class=pagination>$prevpage"."Page $page"."$nextpage</span>");
+}
+
+function buildQueryString($qs,$suffix=NULL) { // Takes an array from parse_str, returns a query string
+	if(!empty($qs)) {
+		foreach($qs as $k => $v) {
+			$querystring .= "$k=$v&";
+		}
+	}
+
+	return(trim($querystring.$suffix,"&"));
+}
+
+function buildLink($url="#", $text="link", $class=NULL, $id=NULL, $name=NULL) { // Construct an internal hyperlink
+	if($class != NULL) { $class=" class='$class'"; }
+	if($id != NULL) { $id=" id='$id'"; }
+	if($name != NULL) { $name=" name='name'"; }
+	return("<a href='".PREFIX."$url'$id$class$name>$text</a>");
+}
+
+function spanHide() { // Returns a hidden span with the contents of all arguments in order
+	$args = func_get_args();
+	return("<span style=display:none;>".implode(" ",$args)."</span>");
 }

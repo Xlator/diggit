@@ -42,7 +42,7 @@ function cleanLink($input) { // Takes an array of link data, returns same but sa
 function printLink($link) { // Prints a link
 	$template = file_get_contents("templates/link.html");
 	$time = timeSince($link[time]);
-	
+
 	if($link[nsfw] == 1) { $nsfw = "<strong class=nsfw>:: NSFW ::</strong>"; }
 	else { $nsfw = "<strong class=nsfw style=display:none;>:: NSFW ::</strong>"; }
 	
@@ -58,40 +58,51 @@ function printLink($link) { // Prints a link
 	
 	switch($link[comments]) {
 		case 0:
-			$comments = "<a href=comments.php?linkid=$link[id]>comment</a>";
+			$commentstext = "comment";
 			break;
 		case 1:
-			$comments = "<a href=comments.php?linkid=$link[id]>1 comment</a>";
+			$commentstext = "1 comment";
 			break;
 		default:
-			$comments = "<a href=comments.php?linkid=$link[id]>$link[comments] comments</a>";
+			$commentstext = "$link[comments] comments";
 			break;
 	}
-	
+
 	if($link[category] != "main") { // Only show the category if it isn't 'main'
-		$cat = "to <a class=linkcat href=./?category=$link[category]>$link[category]</a>";
+		$cat = "to ".buildLink("?category=$link[category]",$link[category],"linkcat"); 
+	}
+	
+	// Build the links for standard stuff	
+	$hlink = "<a href='$link[link]' id=$link[id]>$link[title]</a>"; 
+	$user = buildLink("user.php?id=$link[user]",$link[username]);
+	$domain = buildLink("?domain=$link[domain]",$link[domain],"domain"); 
+	$comments = buildLink("comments.php?linkid=$link[id]",$commentstext);
+
+	if($link[category] != "main") { // Only show the category if it isn't 'main'
+		$cat = "to ".buildLink("?category=$link[category]",$link[category],"linkcat"); 
 	}
 
-	$domain = "<a class=domain href=./?domain=$link[domain]>$link[domain]</a>";
-		
 	//If we are logged in, show edit/delete/nsfw buttons on own links
 	if(intval($_SESSION[id]) == $link[user]) {	
 		
-		if($link[nsfw] == 0) { $nsfwlink = "<a class='nsfw' href=# id=$link[id]>nsfw?</a>"; }
-		else { $nsfwlink = "<a class='nsfw on' href=# id=$link[id]>sfw?</a>"; }
-			
-		$buttons = "$nsfwlink 
-			   <a class=linkedit href=#>edit</a>
-			   <a class=linkdel href=edit.php?id=$link[id]&delete=1>delete</a> 
-			   <span style=display:none;float:left;><a class='linkdel no' href=#>no</a><a class='linkdel yes' href=# id=$link[id]>yes</a></span>";
+		if($link[nsfw] == 0) { $nsfwtext="nsfw?"; $nsfwclass = "nsfw"; } 
+		else { $nsfwtext = "sfw?"; $nsfwclass = "nsfw on"; } 
+		$nsfwtoggle = buildLink("#",$nsfwtext,$nsfwclass);
+		$edit = buildLink("#","edit","linkedit");
+		$delete = buildLink("#","delete","linkdel") . "
+			<span style=display:none;float:left;>
+			" . buildLink("#","no","linkdel no") 
+			  . buildLink("#","yes","linkdel yes") . "
+			  </span>";
+		$buttons =  "$nsfwtoggle $edit $delete";
 
-		// Populate the link edit form
+		// Populate and create the link edit form
 		$input = array("edit" => $link[id], "title" => $link[title], "cat" => $link[category], "url" => $link[link], "nsfw" => $link[nsfw]);
 		$editform = linkform(array(),$input);
 	}
 
-	$placeholders = array("TITLE" => $link[title], "URL" => $link[link],
-		         "DOMAIN" => $domain, "USER" => $link[username], "USERID" => $link[user],
+	$placeholders = array("LINK" => $hlink,
+		         "DOMAIN" => $domain, "USER" => $user, "USERID" => $link[user],
 			 "POINTS" => $link[points], "CAT" => $cat,
 			 "NSFW" => $nsfw, "TIME" => $time, "BUTTONS" => $buttons,
 			 "COMMENTS" => $comments, "ID" => $link[id],

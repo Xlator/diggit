@@ -16,23 +16,20 @@ function commentTree($comments,$parent=NULL,$layer=1) { // Builds comment tree, 
 
 function printComment($comment,$indent) { // Outputs a comment
 	$template = file_get_contents("templates/comment.html");
-	if($comment[points] == NULL) { $comment[points] = 0; }
-	if($comment[points] == 1 || $comment[points] == -1) { $p = "point"; }
-	else { $p = "points"; }
+	$comment[points] .= ($comment[points] == 1 || $comment[points] == -1) ? " point" : " points";
 
-	if(isset($_GET[linkid])) {
-		$user = "<a href=user.php?id=$comment[userid]>$comment[username]</a>";
+	if(isset($_GET[linkid])) { // Comment page format
+		$user = buildLink("user.php?id=$comment[userid]",$comment[username]); //"<a href=user.php?id=$comment[userid]>$comment[username]</a>";
 	}
 
-	elseif(isset($_GET[id])) {
-		$link = "<span><a href=comments.php?linkid=$comment[linkid]#$comment[id]>$comment[title]</a> in <a class=linkcat href=./?category=$comment[category]>$comment[category]</a></span>";
+	elseif(isset($_GET[id])) { // User page format (link title in category)
+		$link = buildLink("comments.php?linkid=$comment[linkid]#$comment[id]",$comment[title]) . " in " .
+			buildLink("?category=$comment[category]",$comment[category],"linkcat"); //<a href=comments.php?linkid=$comment[linkid]#$comment[id]>$comment[title]</a> in <a class=linkcat href=./?category=$comment[category]>$comment[category]</a>";
 	}
-
-	$points = "$comment[points] $p";
-	$myvote = 0;
 	
+	$myvote = 0;
 	if($comment[myvote]) {
-		$myvote = $comment[myvote];
+		$myvote = $comment[myvote]; // Current user's vote
 	}
 	
 	$arrows = voteArrows($myvote,$comment[id]);
@@ -47,13 +44,15 @@ function printComment($comment,$indent) { // Outputs a comment
 	
 	if(!isset($_GET[id])) {	
 	$reply = commentform($comment[id],1); // 1 to hide the form by default
-		if(intval($_SESSION[id]) != 0 && $comment[deleted] == 0) { $replylink = "<a class=reply id=$comment[id] href=#>reply</a>"; }
+		if(intval($_SESSION[id]) != 0 && $comment[deleted] == 0) { $replylink = buildLink("#","reply","reply",$comment[id]); } //"<a class=reply id=$comment[id] href=#>reply</a>"; }
 			
 		if(intval($_SESSION[id]) == $comment[userid] && $comment[deleted] == 0) { 
-			$edit = "<a class=edit id=$comment[id] href=#>edit</a>"; 
-			$delete = "<a class=delete href=#>delete</a> 
-				<span style=display:none;><a class='delete  yes' href=# id=$comment[id]>yes</a> / 
-				<a class='delete  no' href=#>no</a></span>"; 
+			$edit = buildLink("#","edit","edit",$comment[id]); //"<a class=edit id=$comment[id] href=#>edit</a>"; 
+			$delete = buildLink("#","delete","delete") ." ".
+				spanHide(buildLink("#","yes","delete  yes",$comment[id]), buildLink("#","no","delete  no"));
+				/*<a class=delete href=#>delete</a> 
+				<a class='delete  yes' href=# id=$comment[id]>yes</a> / 
+				<a class='delete  no' href=#>no</a></span>"; */
 		}
 	}
 
@@ -63,7 +62,7 @@ function printComment($comment,$indent) { // Outputs a comment
 	
 	$placeholders = array("ID" => $comment[id], "USER" => $user, "LINK" => $link, 
 			      "USERID" => $comment[userid], "TIME" => timeSince($comment[time]), 
-			      "ARROWS" => $arrows, "TEXT" => $text, "POINTS" => $points,
+			      "ARROWS" => $arrows, "TEXT" => $text, "POINTS" => $comment[points],
 			      "INDENT" => $indent, "REPLYBOX" => $reply, "REPLY" => $replylink, 
 			      "EDIT" => $edit, "DELETE" => $delete, "LINKID" => $comment[linkid],
 			      "DELETED" => $deleted);

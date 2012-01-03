@@ -1,5 +1,6 @@
 body {
 	font-family: sans;
+	width: 98%;
 }
 q {
 	display:block;
@@ -22,12 +23,13 @@ nav.top {
 	margin-bottom: 5px;
 	font-family: sans;
 }
-nav.top a { margin-left: 5px; text-decoration: none; font-weight:bold; color: #A00; }
-nav.top a.diggit { color: #000; }
-nav.top a.headercat { color: #000; font-weight: 500; }
+nav.top a { margin-left: 0px; text-decoration: none; font-weight:bold; color: #A00; margin-left: 0.5em; }
+nav.top a.diggit { color: #000; margin-right: 0.5em; margin-left:0.5em;  }
+nav.top a.headercat { color: #000; font-weight: 500; margin-left: 0px; margin-right: 5px; }
 nav.top a:hover { border-bottom: 1px dashed #AAA; background: #EEE; }
 
-a.login { float: right; margin-right:1.8em; }
+span.login { float: right; margin-right: 0em; }
+a.login { margin-right:0.5em; }
 
 h1 {
 	margin-left:2%;
@@ -131,7 +133,7 @@ article.link footer span a {
 	font-weight: 600;
 }
 
-article.comment header span a.linkcat, 
+article.comment header a.linkcat, 
 article.link footer span a.linkcat { 
 	font-weight: 400; font-style:italic; 
 }
