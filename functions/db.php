@@ -114,7 +114,7 @@ function logout() { // Remove session ID from user table and destroy session
 	$_SESSION[id] = intval($_SESSION[id]);	
 	if(userExists("id",$_SESSION[id])) { // Make sure the user id exists
 		session_regenerate_id(); 
-		session_destroy(); 
+		session_destroy();
 		return false; 
 	}
 

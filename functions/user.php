@@ -74,8 +74,8 @@ function printUser($user) { // Output user information
 				"USERID" => $_GET[id],
 				"USERNAME" => $user[username],
 				"REGTIME" => timeSince($user[registered]),
-				"LINKS" => buildLink("user.php?id=$user[id]",$user[links]),
-				"COMMENTS" => buildLink("user.php?id=$user[id]&type=comments",$user[comments]),
+				"LINKS" => buildLink("user.php?name=$user[username]&type=links",$user[links]),
+				"COMMENTS" => buildLink("user.php?name=$user[username]&type=comments",$user[comments]),
 				"POINTS" => $user[points]
 			);
 

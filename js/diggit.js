@@ -1,4 +1,5 @@
 $(document).ready (function () {
+	window.prefix='/diggit/';
 	$("div.arrowup, div.arrowdown").each(function() { // Voting
 		var type = $(this).parent().parent()[0].id;
 		var pointsid = $(this)[0].id;
@@ -27,9 +28,8 @@ $(document).ready (function () {
 					$(this).prev().removeClass("upvote");
 				}
 			}
-			 
 			// Send vote and update vote count live
-			$.post("ajax/vote.php", { 'vote[]' : [$(this)[0].id, window.vote, type] }, 
+			$.post(window.prefix+"ajax/vote.php", { 'vote[]' : [$(this)[0].id, window.vote, type] }, 
 					function(data) { $("body").find("span.points#"+type+pointsid).html( data ); },"html");
 	
 		});
@@ -83,7 +83,7 @@ $(document).ready (function () {
 			$(this).text("cancel"); // Change "edit" to "cancel"
 			
 			/* Get the unformatted comment text from the database via AJAX, and insert it into the textarea for editing */
-			$.get("ajax/rawcomment.php", { id: commentid }, function(data) { $("body").find("textarea#"+commentid).val(data); });
+			$.get(window.prefix+"ajax/rawcomment.php", { id: commentid }, function(data) { $("body").find("textarea#"+commentid).val(data); });
 			$("body").find("textarea#"+commentid).toggleClass("active"); // Activate our textarea
 			$(this).parent().nextAll("div").slideDown("slow"); // Show the form div
 			$("body").find("form#"+commentid+" > input[name=edit]").val("1"); // Set the edit field
@@ -113,7 +113,7 @@ $(document).ready (function () {
 	$("a.delete").click(function() { // Delete a comment
 		if($(this).hasClass("yes")) { // If deletion is confirmed by the user...
 			var commentid=$(this)[0].id;
-			$.get("ajax/delete.php", { id: commentid, type: "comment" }); // Send the AJAX request to "delete" the comment from the database (changes field "deleted" to 1)
+			$.get(window.prefix+"ajax/delete.php", { id: commentid, type: "comment" }); // Send the AJAX request to "delete" the comment from the database (changes field "deleted" to 1)
 			$(this).parent().parent().parent().siblings("div").toggleClass("hide"); // Hide the voting arrows
 			$(this).parent().parent().parent().parent().fadeTo(0,"0.33"); // Fade the comment
 		       	$(this).parent().hide(); // Hide the reply/edit/delete links
@@ -144,12 +144,13 @@ $(document).ready (function () {
 		else { // Cancel the edit
 			$(this).parent().parent().parent().parent().siblings("li#link").fadeTo(0,"1"); // Make all the links full opacity
 		}
+		return false;
 	});
 
 	$("a.linkdel").click(function() { // Delete a link
 		if($(this).hasClass("yes")) { // If the user confirms the deletion
 			var linkid=$(this)[0].id;
-			$.get("ajax/delete.php", { id: linkid, type: "link" }); // Send the AJAX request to delete the link from the database
+			$.get(window.prefix+"ajax/delete.php", { id: linkid, type: "link" }); // Send the AJAX request to delete the link from the database
 			if(window.location.href.indexOf("comments.php") != -1) { window.location = "./"; } // Return to index if we're on the comments page
 			else { $(this).parent().parent().parent().parent().parent().hide() } // Hide the deleted link
 		}
@@ -166,7 +167,7 @@ $(document).ready (function () {
 	
 	$("a.nsfw").click(function() { // Toggle nsfw status of a link
 		var linkid=$(this)[0].id;
-		$.get("ajax/nsfw.php", { id: linkid }); // Send the request
+		$.get(window.prefix+"ajax/nsfw.php", { id: linkid }); // Send the request
 		$(this).toggleClass("on"); // Toggle the nsfw class
 		if(!($(this).hasClass("on"))) { // If the link is currently sfw
 			$(this).text("nsfw?"); // Change link text to "nsfw?"
@@ -183,7 +184,7 @@ $(document).ready (function () {
 	$("h3 > a").click(function() { // Insert the id of a clicked link into the "lastvisited" field in the user table
 		var linkid=$(this)[0].id;
 		var linkurl=$(this).attr('href');
-		$.get("ajax/lastvisited.php", { id: linkid }, window.location = linkurl); 
+		$.get(window.prefix+"ajax/lastvisited.php", { id: linkid }, window.location = linkurl); 
 		return false;
 	});
 	

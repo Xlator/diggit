@@ -4,6 +4,9 @@
 
 function linkform($errors=array(),$input=array()) { // Outputs the link submission form with error messages and input from previous attempt (if any)
 	$form = file_get_contents("forms/link.html");
+	if(REWRITE == 'on') { $formaction = PREFIX."submit/"; }
+	else { $formaction = "submit.php"; }
+	$form = str_replace("{ACTION}",$formaction,$form);
 	if(!empty($errors)) { // Replace placeholders with error messages and post back input
 		
 		foreach($errors as $err => $str) {
@@ -41,6 +44,9 @@ function linkform($errors=array(),$input=array()) { // Outputs the link submissi
 
 function loginform($errors=array(),$input=array()) { // Outputs the login form with error messages and input from previous attempt (if any)
 	$form = file_get_contents("forms/login.html");
+	if(REWRITE == 'on') { $formaction = PREFIX."login/"; }
+	else { $formaction = "login.php"; }
+	$form = str_replace("{ACTION}",$formaction,$form);
 	if($input[action] == "login") { 
 		foreach($errors as $err => $str) {
 			$placeholder = "{" . strtoupper($err) . "-ERR}";
@@ -56,6 +62,9 @@ function loginform($errors=array(),$input=array()) { // Outputs the login form w
 
 function regform($errors=array(),$input=array()) { // Outputs the registration form with error messages and input from previous attempts (if any)
 	$form = file_get_contents("forms/register.html");
+	if(REWRITE == 'on') { $formaction = PREFIX."login/"; }
+	else { $formaction = "login.php"; }
+	$form = str_replace("{ACTION}",$formaction,$form);
 	if($input[action] == "register") {
 		foreach($errors as $err => $str) {
 			$placeholder = "{" . strtoupper($err) . "-ERR}";

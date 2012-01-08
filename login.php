@@ -17,7 +17,7 @@ if($_POST[action] == "register") { // Register
 		$_SESSION[id] = $userid;
 		session_regenerate_id();
 		login(session_id());
-		header("Location: ./");
+		header("Location: ".PREFIX);
 	}
 	$errors = registrationErrors($_POST);
 	$input = cleanLink($_POST);
@@ -29,7 +29,7 @@ if($_POST[action] == "login") { // Login
 		$_SESSION[id] = $userid;
 		session_regenerate_id();
 		login(session_id());
-		header("Location: ./");
+		header("Location: ".PREFIX);
 	}
 	$errors = loginErrors($_POST);
 	$input = cleanLink($_POST);

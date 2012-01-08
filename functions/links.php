@@ -42,7 +42,7 @@ function cleanLink($input) { // Takes an array of link data, returns same but sa
 function printLink($link) { // Prints a link
 	$template = file_get_contents("templates/link.html");
 	$time = timeSince($link[time]);
-
+	$link[id] = base36($link[id]);
 	if($link[nsfw] == 1) { $nsfw = "<strong class=nsfw>:: NSFW ::</strong>"; }
 	else { $nsfw = "<strong class=nsfw style=display:none;>:: NSFW ::</strong>"; }
 	
@@ -68,15 +68,12 @@ function printLink($link) { // Prints a link
 			break;
 	}
 
-	if($link[category] != "main") { // Only show the category if it isn't 'main'
-		$cat = "to ".buildLink("?category=$link[category]",$link[category],"linkcat"); 
-	}
-	
 	// Build the links for standard stuff	
 	$hlink = "<a href='$link[link]' id=$link[id]>$link[title]</a>"; 
-	$user = buildLink("user.php?id=$link[user]",$link[username]);
+	$user = buildLink("user.php?name=$link[username]",$link[username]);
 	$domain = buildLink("?domain=$link[domain]",$link[domain],"domain"); 
-	$comments = buildLink("comments.php?linkid=$link[id]",$commentstext);
+	if(REWRITE == 'on') { $title = "&title=".urlTitle($link[title]); }
+	$comments = buildLink("comments.php?" . (($link[category] != main) ? "category=$link[category]" : '') . "&linkid=$link[id]$title",$commentstext);
 
 	if($link[category] != "main") { // Only show the category if it isn't 'main'
 		$cat = "to ".buildLink("?category=$link[category]",$link[category],"linkcat"); 
@@ -87,12 +84,12 @@ function printLink($link) { // Prints a link
 		
 		if($link[nsfw] == 0) { $nsfwtext="nsfw?"; $nsfwclass = "nsfw"; } 
 		else { $nsfwtext = "sfw?"; $nsfwclass = "nsfw on"; } 
-		$nsfwtoggle = buildLink("#",$nsfwtext,$nsfwclass);
+		$nsfwtoggle = buildLink("#",$nsfwtext,$nsfwclass,$link[id]);
 		$edit = buildLink("#","edit","linkedit");
 		$delete = buildLink("#","delete","linkdel") . "
 			<span style=display:none;float:left;>
 			" . buildLink("#","no","linkdel no") 
-			  . buildLink("#","yes","linkdel yes") . "
+			  . buildLink("#","yes","linkdel yes",$link[id]) . "
 			  </span>";
 		$buttons =  "$nsfwtoggle $edit $delete";
 
@@ -101,13 +98,15 @@ function printLink($link) { // Prints a link
 		$editform = linkform(array(),$input);
 	}
 
-	$placeholders = array("LINK" => $hlink,
-		         "DOMAIN" => $domain, "USER" => $user, "USERID" => $link[user],
+	$placeholders = array(
+			 "LINK" => $hlink, "DOMAIN" => $domain, 
+			 "USER" => $user, "USERID" => $link[user],
 			 "POINTS" => $link[points], "CAT" => $cat,
 			 "NSFW" => $nsfw, "TIME" => $time, "BUTTONS" => $buttons,
 			 "COMMENTS" => $comments, "ID" => $link[id],
 			 "ARROWS" => $arrows, "EDITFORM" => $editform,
-		 	 "LAST" => $last);
+			 "LAST" => $last
+		 	);
 
 	
 	foreach($placeholders as $p => $value) {

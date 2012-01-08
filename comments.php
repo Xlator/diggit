@@ -10,7 +10,7 @@ require("functions/common.php");
 require("functions/comments.php");
 require("functions/forms.php");
 
-$linkid = intval($_GET[linkid]);
+$linkid = unbase36($_GET[linkid]);
 if(!linkIdExists($linkid)) { header("Location: ./"); } // If the link id is invalid, return to index
 
 checkLogin($_SESSION[id]);
@@ -31,6 +31,6 @@ print(printLink($link)); // Print the link
 print "<li style=margin-bottom:1em;>";
 print(commentform(0)); // Top comment form
 print "</li>";
-$comments = getComments($_GET[linkid]);
+$comments = getComments($linkid);
 commentTree($comments[0]);
 print "</ul></ul></div>";

@@ -11,6 +11,13 @@ function timeSince($mysqltimestamp) :: returns time since given timestamp, round
 function printHeader() :: Outputs the site header
 function voteArrows($myvote,$subjectid) :: Outputs the appropriate voting arrows depending on the logged in user's vote
 function pagination($page, $totalpages) :: Pagination function, takes page info from getLinks() / getComments()
+function buildQueryString($qs,$suffix=NULL) :: Takes an array from parse_str, returns a query string
+function buildLink($url="#", $text="link", $class=NULL, $id=NULL, $name=NULL) :: Construct an internal hyperlink
+function simplifyURL($url) :: Rewrite a query string to a static URL
+function spanHide() :: Returns a hidden span with the contents of all arguments in order
+function urlTitle($str) :: Sanitize link title for URL
+function unbase36($str) :: Return decimal value of base 36 encoded number
+function base36($int) :: Return base 36 encoding of integer
 
 /* --------- Database connection/query helper functions --------- */
 function dbConn() :: Returns database link

@@ -2,8 +2,6 @@
 session_start();
 $_SESSION[id] = intval($_SESSION[id]);
 if(!isset($_SESSION[id])) { $_SESSION[id] = 0; }
-if(intval($_GET[id]) == 0) { header("Location: ./"); }
-$linkid = intval($_GET[linkid]);
 require("config.php");
 require("functions/db.php");
 require("functions/links.php");
@@ -11,6 +9,9 @@ require("functions/common.php");
 require("functions/comments.php");
 require("functions/user.php");
 require("functions/forms.php");
+if(isset($_GET[name])) { $_GET[id] = getUserId($_GET[name]); }
+if(intval($_GET[id]) == 0) { header("Location:".PREFIX); }
+$linkid = intval($_GET[linkid]);
 
 checkLogin($_SESSION[id]);
 
@@ -50,4 +51,9 @@ print "</ul>";
 print($pagination);
 print "</div>";
 
-
+/*
+print("<pre>");
+print_r($_SERVER);
+print_r(parse_url($_SERVER[REQUEST_URI]));
+print("</pre>");
+*/

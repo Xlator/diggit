@@ -1,0 +1,51 @@
+Options +FollowSymLinks
+Options +Indexes
+RewriteEngine on
+RewriteBase /diggit/
+
+# Index rules
+    
+    # Page only
+    RewriteRule ^p([0-9]+)/?$ ?page=$1 [L]
+    
+    ## Order only
+    RewriteRule ^([a-z]{3})/?$ ?order=$1 [L]
+    
+    ## Order with page
+    RewriteRule ^([a-z]{3})/p([0-9]+)/?$ ?order=$1&page=$2 [L]
+    
+    ## Category/domain only
+    RewriteRule ^category/([a-z]*)/?$ ?category=$1 [L]
+    RewriteRule ^domain/([a-zA-Z0-9-\.]+)/?$ ?domain=$1 [L]
+    
+
+    ## Category/domain with page
+    RewriteRule ^category/([a-z]*)/p([0-9]*)/?$ ?category=$1&page=$2 [L]
+    RewriteRule ^domain/([a-zA-Z0-9-\.]*)/p([0-9]*)/?$ ?domain=$1&page=$2 [L]
+    
+    ## Category/domain with order
+    RewriteRule ^category/([a-z]*)/([a-z]{3})/?$ ?category=$1&order=$2 [L]
+    RewriteRule ^domain/([a-zA-Z0-9-\.]+)/([a-z]{3})/?$ ?domain=$2&order=$2 [L]
+    
+    ## Category/domain with order and page
+    RewriteRule ^category/([a-z]*)/([a-z]{3})/p([0-9]+)/?$ ?category=$1&order=$2&page=$3 [L]
+    RewriteRule ^domain/([a-zA-Z0-9-\.]*)/([a-z]{3})/p([0-9]+)/?$ ?domain=$1&order=$2&page=$3 [L]
+
+# User page rules
+
+    RewriteRule ^user/([A-Za-z0-9-_]+)/?$ user.php?name=$1&type=links [L]
+    RewriteRule ^user/([A-Za-z0-9-_]+)/([a-z]{5,8})/?$ user.php?name=$1&type=$2 [L]
+    RewriteRule ^user/([A-Za-z0-9-_]+)/([a-z]{5,8})/p([0-9]+)/?$ user.php?name=$1&type=$2&page=$3 [L]
+
+# Comment page rules
+
+    # No category
+    RewriteRule ^comments/([a-z0-9]*)/?(.*)?$ comments.php?linkid=$1 [L]
+    
+    # With category
+    RewriteRule ^category/([a-z]*)/comments/([0-9a-z]+)/?(/.*)?$ comments.php?category=$1&linkid=$2 [L]
+
+# Other pages
+    RewriteRule ^submit/?$ submit.php
+    RewriteRule ^login/?$ login.php
+    RewriteRule ^logout/?$ index.php?logout=1
