@@ -16,8 +16,8 @@ if($_POST) {
 	if(!linkErrors($input)) { // Post/edit the link and redirect to the comment page
 		$linkid = sendLink($input);
 		if($_POST[edit]) { $linkid = intval($_POST[edit]); }
-		if(REWRITE == 'on') { header("Location: ".PREFIX."category/$input[cat]/comments/$linkid"); }
-		else { header("Location: ".PREFIX."comments.php?category=$input[cat]&linkid=$linkid"); }
+		if(REWRITE == 'on') { header("Location: ".PREFIX."category/$input[cat]/comments/" . base36($linkid)); }
+		else { header("Location: ".PREFIX."comments.php?category=$input[cat]&linkid=" . base36($linkid)); }
 	}	
 	$errors = linkErrors($input); // Output error messages
 }
